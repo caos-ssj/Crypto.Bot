@@ -1,0 +1,51 @@
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Variables de entorno
+.env
+.env.local
+*.key
+*.pem
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Modelos IA
+*.gguf
+*.safetensors
+
+# Datos sensibles
+config/config.local.yaml
+*.db
+*.sqlite
+
+# Backups
+*.bak
+*.backup
