@@ -98,3 +98,32 @@ def detect_new_tokens(
     logger.info(f"Detectados {len(new_tokens)} tokens nuevos de {len(raw_tokens)} recibidos")
     
     return new_tokens
+import requests
+
+DEXSCREENER_SEARCH_URL = "https://api.dexscreener.com/latest/dex/search"
+
+
+def fetch_recent_solana_tokens(query: str = "pump") -> list[dict[str, Any]]:
+    """Obtiene pares recientes de DexScreener filtrados por Solana.
+    
+    Args:
+        query: Término de búsqueda.
+    
+    Returns:
+        Lista cruda de pares filtrados por Solana.
+    """
+    try:
+        response = requests.get(
+            DEXSCREENER_SEARCH_URL,
+            params={"q": query},
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+        pairs = data.get("pairs", []) or []
+        solana_pairs = [p for p in pairs if p.get("chainId") == "solana"]
+        logger.info(f"DexScreener: {len(solana_pairs)} pares Solana de {len(pairs)}")
+        return solana_pairs
+    except Exception as e:
+        logger.error(f"Error DexScreener: {e}")
+        return []
