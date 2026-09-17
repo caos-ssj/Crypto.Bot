@@ -2,6 +2,7 @@
 
 ![Status](https://img.shields.io/badge/status-in_development-yellow)
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
+![CI](https://github.com/caos-ssj/Crypto-Bot/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 > Bot autónomo de trading de memecoins en Solana con análisis on-chain, IA local y gestión de riesgo.
