@@ -3,6 +3,7 @@
 import os
 import sys
 from typing import Any
+from apscheduler.schedulers.blocking import BlockingScheduler
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -10,6 +11,9 @@ from src.analyzer import analyze_token
 from src.config import get_mode_settings
 from src.detector import detect_new_tokens, fetch_recent_solana_tokens
 from src.executor import execute_swap
+
+
+CYCLE_INTERVAL_SECONDS = 15
 
 
 def load_env_config() -> dict[str, Any]:
@@ -92,28 +96,35 @@ def run_cycle(
     Returns:
         Dict con estadísticas del ciclo.
     """
-    new_tokens = detect_new_tokens(
-        fetch_func=lambda: fetch_recent_solana_tokens(query="pump"),
-        seen_tokens=seen_tokens,
-    )
+    try:
+        new_tokens = detect_new_tokens(
+            fetch_func=lambda: fetch_recent_solana_tokens(query="pump"),
+            seen_tokens=seen_tokens,
+        )
+    except Exception as e:
+        logger.error(f"Error en detección: {e}")
+        return {"processed": 0, "executed": 0}
     
     processed = 0
     executed = 0
     
     for token in new_tokens:
-        result = process_token(token, mode_settings, dry_run=dry_run)
-        processed += 1
-        if result.get("executed"):
-            executed += 1
-        seen_tokens.add(token["token_address"])
+        try:
+            result = process_token(token, mode_settings, dry_run=dry_run)
+            processed += 1
+            if result.get("executed"):
+                executed += 1
+            seen_tokens.add(token["token_address"])
+        except Exception as e:
+            logger.error(f"Error procesando {token.get('symbol', '?')}: {e}")
     
-    logger.info(f"Ciclo completado: {processed} procesados, {executed} ejecutados")
+    logger.info(f"Ciclo: {processed} procesados, {executed} ejecutados, {len(seen_tokens)} vistos total")
     
     return {"processed": processed, "executed": executed}
 
 
 def main() -> int:
-    """Punto de entrada del bot.
+    """Punto de entrada del bot con scheduler continuo.
     
     Returns:
         Código de salida (0 = éxito, 1 = error).
@@ -125,13 +136,30 @@ def main() -> int:
         return 1
     
     logger.info(f"Bot iniciado en modo {config['mode']} (DRY_RUN={config['dry_run']})")
+    logger.info(f"Ciclo cada {CYCLE_INTERVAL_SECONDS}s. Ctrl+C para detener.")
     
     mode_settings = get_mode_settings(config["mode"])
     seen_tokens: set[str] = set()
     
-    result = run_cycle(seen_tokens, mode_settings, dry_run=config["dry_run"])
+    # Ejecutar un ciclo inmediatamente al arrancar
+    run_cycle(seen_tokens, mode_settings, dry_run=config["dry_run"])
     
-    logger.info(f"Resultado final: {result}")
+    # Programar ciclos periódicos
+    scheduler = BlockingScheduler()
+    scheduler.add_job(
+        lambda: run_cycle(seen_tokens, mode_settings, dry_run=config["dry_run"]),
+        "interval",
+        seconds=CYCLE_INTERVAL_SECONDS,
+        id="cycle",
+        max_instances=1,
+    )
+    
+    try:
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Bot detenido por el usuario.")
+        scheduler.shutdown(wait=False)
+    
     return 0
 
 
