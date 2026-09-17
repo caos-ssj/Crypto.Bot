@@ -38,3 +38,4 @@ pre-commit>=3.8.0
 pytest-xprocess>=1.0.0
 rich>=13.7.0
 rich>=13.7.0
+streamlit>=1.40.0
