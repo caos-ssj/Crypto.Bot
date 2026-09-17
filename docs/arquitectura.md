@@ -85,3 +85,25 @@ Bot autónomo de trading de memecoins en Solana. Detecta tokens nuevos, los anal
 - Estado de posiciones: archivo JSON (`logs/positions.json`)
 - Historial de operaciones: PostgreSQL (pendiente)
 - Logs: `logs/bot.log` (rotación diaria)
+## Resiliencia ante Fallos Externos
+
+El bot consulta múltiples APIs externas (DexScreener, Helius, LM Studio). Cada una puede fallar de forma independiente.
+
+### Estrategia de manejo de fallos
+
+| Fuente | Fallo típico | Manejo |
+|--------|--------------|--------|
+| DexScreener | Timeout / rate limit | Retry con backoff → lista vacía |
+| Helius RPC | 500 server error | Filtro devuelve valor conservador (falla el filtro, no el bot) |
+| LM Studio | Offline / timeout | Fallback a score 0, decisión basada solo en reglas |
+| Jupiter | Sin quote | Aborta swap, registra en log |
+
+### Principio de diseño
+
+**Un fallo de API externa nunca debe detener el ciclo completo del bot.**
+
+- Cada módulo captura sus excepciones
+- El scoring continúa con datos parciales (conservador)
+- El bot sigue corriendo aunque Helius, LM Studio o DexScreener fallen
+
+Esto se probó en producción: durante un ciclo real, Helius devolvió `500 Server Error` en `getTokenSupply` y el bot continuó analizando tokens sin interrupción.
