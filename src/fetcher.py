@@ -38,6 +38,8 @@ def _normalize_pair(raw: dict[str, Any]) -> dict[str, Any] | None:
         "pair_created_at": raw.get("pairCreatedAt"),
         "dex_id": raw.get("dexId", "?"),
         "raw": raw,
+        "age_minutes": int((__import__("time").time() * 1000 - raw.get("pairCreatedAt", 0)) / 60000) if raw.get("pairCreatedAt") else 0,
+"creator_address": base.get("address", ""),
     }
 
 
