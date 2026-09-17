@@ -79,45 +79,31 @@ def _call_lm_studio(
     base_url: str,
     model: str = DEFAULT_MODEL,
 ) -> Any:
-    """Llama a LM Studio (API compatible con OpenAI).
-    
-    Args:
-        prompt: Prompt a enviar.
-        base_url: URL del servidor LM Studio.
-        model: Nombre del modelo.
-    
-    Returns:
-        Respuesta cruda de la API.
-    """
+    """Llama a LM Studio (API compatible con OpenAI)."""
     client = OpenAI(base_url=f"{base_url}/v1", api_key="not-needed")
     return client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=200,
+        max_tokens=1000,      # ← subir de 200 a 1000
         temperature=0.3,
     )
-
 
 def get_ai_score(
     token: dict[str, Any],
     base_url: str = "http://localhost:1234",
     model: str = DEFAULT_MODEL,
 ) -> dict[str, Any]:
-    """Obtiene el score de IA para un token.
-    
-    Args:
-        token: Datos del token.
-        base_url: URL del servidor LM Studio.
-        model: Nombre del modelo.
-    
-    Returns:
-        Dict con score, reason, fallback (True si falló la IA).
-    """
+    """Obtiene el score de IA para un token."""
     prompt = build_prompt(token)
     
     try:
         response = _call_lm_studio(prompt, base_url, model)
-        content = response.choices[0].message.content
+        message = response.choices[0].message
+        content = message.content
+        # Qwen3 puede dejar content=None si todo se fue en thinking
+        if not content:
+            logger.warning("Respuesta vacía de IA (posible thinking mode)")
+            return {"score": 0, "reason": "Respuesta vacía", "fallback": True}
     except Exception as e:
         logger.warning(f"IA no disponible: {e}. Usando fallback.")
         return {"score": 0, "reason": "IA no disponible", "fallback": True}
