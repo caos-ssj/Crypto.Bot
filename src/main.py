@@ -245,7 +245,7 @@ def process_token(
             logger.warning(f"Error en IA para {token.get('symbol')}: {e}")
 
     # 4. Score combinado (70% reglas + 30% IA)
-    final_score = round((1 - AI_WEIGHT) * rule_score + AI_WEIGHT * ai_result["score"])
+    final_score = rule_score if ai_result.get("fallback") else round((1 - AI_WEIGHT) * rule_score + AI_WEIGHT * ai_result["score"])
 
     # 5. Decisión
     if final_score > 70:
@@ -265,7 +265,7 @@ def process_token(
                 amount_sol=mode_settings.get("base_buy", 0.01),
                 dry_run=config["dry_run"],
             )
-            executed = swap_result.get("status") in ("dry_run", "success")
+            executed = swap_result.get("status") == "success"
         except Exception as e:
             logger.warning(f"Error en swap para {token.get('symbol')}: {e}")
 
@@ -277,6 +277,8 @@ def process_token(
         "final_score": final_score,
         "action": action,
         "executed": executed,
+        "execution_mode": "DRY_RUN" if config["dry_run"] else "REAL",
+        "execution_status": (swap_result or {}).get("status"),
         "swap_result": swap_result,
     }
 
@@ -385,7 +387,7 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
     ))
     console.print()
 
-    seen_tokens: set[str] = set()
+    seen_tokens: set[str] = set()\n    # NOTE: in-memory deduplication is intentionally retained for this phase.\n    # Persistent detection state will be introduced in the state/persistence phase.
     cycle_num = 0
 
     def cycle_job() -> None:
