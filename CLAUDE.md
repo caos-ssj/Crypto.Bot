@@ -1,7 +1,7 @@
 # CLAUDE.md — Crypto Bot (memecoin trading en Solana)
 
 Contexto de memoria del proyecto para agentes de IA. Mantener actualizado conforme
-evoluciona el código. Última revisión: 2026-09-18 (Fase A en curso).
+evoluciona el código. Última revisión: 2026-09-18. Repo en tag **v2.0**.
 
 ## 1. Resumen del proyecto
 
