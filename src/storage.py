@@ -103,12 +103,20 @@ def register_detection(token_address: str, db_path: str = DEFAULT_DB_PATH) -> bo
             (token_address, now, now),
         )
         if cursor.rowcount == 0:
+            row = conn.execute(
+                "SELECT status FROM detected_tokens WHERE token_address = ?",
+                (token_address,),
+            ).fetchone()
             conn.execute(
                 "UPDATE detected_tokens SET last_seen_at = ? WHERE token_address = ?",
                 (now, token_address),
             )
+            conn.commit()
+            # A token already fully processed is a duplicate; an interrupted
+            # detection can be retried safely after restart.
+            return bool(row and row["status"] != "PROCESSED")
         conn.commit()
-        return cursor.rowcount == 1
+        return True
     finally:
         conn.close()
 
