@@ -153,7 +153,7 @@ def enrich_token(token: dict[str, Any], api_key: str) -> dict[str, Any]:
     
     token["top_10_holders_pct"] = get_top_holders_pct(address, api_key)
     
-    creator = token.get("creator_address") or token.get("mint_authority")
+    creator = token.get("creator_address")
     if creator:
         token["creator_age_days"] = get_creator_age_days(creator, api_key)
     else:
