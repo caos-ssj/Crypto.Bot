@@ -113,7 +113,9 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
   para no romper el ciclo del bot; **no añadir más sin necesidad** (si se añade,
   justificar con `# noqa: BLE001` en boundary público).
 - `dashboard.py` no está black-limpio (no tocarlo con black automático).
-- CI (`/.github/workflows/ci.yml`): ruff/black/pytest con `|| true` (no bloquea).
+- CI (`.github/workflows/ci.yml`): `ruff check`, `black --check` y
+  `pytest --cov=src --cov-fail-under=60`. **Bloqueante** desde v2.1
+  (se eliminó el `|| true` que hacía pasar el pipeline siempre).
 
 ## 7. Estado actual (Fase B completada — 2026-09-18)
 

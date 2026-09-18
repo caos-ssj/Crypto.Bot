@@ -8,6 +8,39 @@ Cada filtro asigna puntos según su peso. El score total determina la decisión:
 - **OBSERVAR:** Score 50-70
 - **EVITAR:** Score < 50
 
+### Escalera de decisión
+
+```mermaid
+flowchart LR
+    A[Score 0-100] --> B{> 70?}
+    B -- SÍ --> C[🟢 COMPRA<br/>ejecuta swap si el riesgo lo permite]
+    B -- NO --> D{>= 50?}
+    D -- SÍ --> E[🟡 OBSERVAR<br/>se registra, no se opera]
+    D -- NO --> F[🔴 EVITAR]
+```
+
+El **score final** combina reglas e IA: `final = 70%·reglas + 30%·IA`. Si la IA
+no responde, su peso cae a 0 y la decisión depende solo de las reglas.
+
+### Distribución de pesos
+
+```
+Seguridad        ██████████████  25 pts   sin bundles · dev sin vender
+Market cap       ██████████      20 pts   rango según modo
+Global fees      ██████████      20 pts   ~ 0.15 SOL (sin fuente fiable hoy)
+Edad del token   ████████        15 pts   < 24 h
+Liquidez / MC    ██               5 pts   > 3 %
+Top-10 holders   ██               5 pts   < 50 %
+Volumen 5 min    ██               5 pts   > $2 K
+Edad del creador ██               5 pts   > 3 días
+Autoridades      ██               5 pts   mint/freeze deshabilitadas
+Bundles          ██               5 pts   sin lanzamiento agrupado
+Dev sell         ██               5 pts   el dev no ha soltado su bolsa
+```
+
+> ⚠️ Suma teórica máxima: **115 pts** (se normaliza a 100). La columna "Seguridad"
+> concentra el 25/115 ≈ 22 % del peso: es el filtro más importante del sistema.
+
 ### Política de datos no verificados
 
 Un dato on-chain que **no puede verificarse** (fallo de RPC, API sin datos, etc.)
@@ -20,6 +53,10 @@ Cada filtro reporta un `status`:
 - `missing`: no había datos para evaluarlo (0 pts, conservador).
 
 ## Tabla de Filtros
+
+> Los umbrales de la tabla corresponden al modo **equilibrado**
+> (`src/config.py`). En `conservador`/`agresivo` cambian el rango de MC y la
+> edad máxima — ver [Ajustes por Modo](#ajustes-por-modo).
 
 | # | Filtro | Condición | Peso | Fuente de datos |
 |---|--------|-----------|------|-----------------|
@@ -133,7 +170,7 @@ Los umbrales cambian según el modo:
 | T-02 | Token basura | Todos los filtros fallan | Score 0, EVITAR |
 | T-03 | MC en límite | MC = $20,000 exacto | 20 pts |
 | T-04 | MC un peso abajo | MC = $19,999 | 0 pts |
-| T-05 | Token sin datos | API falla | Score = null, EVITAR |
+| T-05 | Token sin datos | API falla en todo | Score 0 (todos `missing`), EVITAR |
 | T-06 | Múltiples fallos | MC OK, Fees falla, Edad OK | Score refleja fallo |
 
 ## Notas de Implementación

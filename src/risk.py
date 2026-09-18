@@ -1,7 +1,7 @@
 """Gestión de riesgo: TP, SL, trailing stop, límites."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from loguru import logger
 
@@ -23,9 +23,7 @@ class Position:
     sl_price: float
     trailing_active: bool = False
     max_price_reached: float = 0.0
-    opened_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    opened_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def __post_init__(self) -> None:
         if self.max_price_reached == 0.0:
