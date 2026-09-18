@@ -125,3 +125,56 @@ def test_process_token_handles_db_error(base_config, mode_settings):
     # No crashea, retorna el resultado igual
     assert "action" in result
     assert "final_score" in result
+
+def test_process_token_ai_fallback_does_not_penalize_rules(base_config, mode_settings):
+    """Si la IA falla, el score final conserva el score de reglas."""
+    base_config["use_ai"] = True
+    token = {
+        "symbol": "TEST",
+        "token_address": "TOK-AI",
+        "market_cap": 50000,
+        "liquidity_usd": 5000,
+        "volume_5min": 5000,
+        "global_fees_sol": 1.0,
+        "age_minutes": 100,
+        "has_bundles": False,
+        "dev_has_sold": False,
+        "top_10_holders_pct": 20.0,
+        "creator_age_days": 30,
+        "mint_authority_disabled": True,
+        "freeze_authority_disabled": True,
+    }
+    with patch("src.main.get_ai_score", return_value={
+        "score": 0, "reason": "IA no disponible", "fallback": True
+    }), patch("src.main.save_analysis"):
+        result = process_token(token, mode_settings, base_config, verbose=False)
+
+    assert result["final_score"] == result["analysis"]["score"]
+    assert result["ai"]["fallback"] is True
+
+
+def test_process_token_dry_run_is_not_executed(base_config, mode_settings):
+    """DRY_RUN simula la operación pero no la registra como ejecutada."""
+    token = {
+        "symbol": "TEST",
+        "token_address": "TOK-DRY",
+        "market_cap": 50000,
+        "liquidity_usd": 5000,
+        "volume_5min": 5000,
+        "global_fees_sol": 1.0,
+        "age_minutes": 100,
+        "has_bundles": False,
+        "dev_has_sold": False,
+        "top_10_holders_pct": 20.0,
+        "creator_age_days": 30,
+        "mint_authority_disabled": True,
+        "freeze_authority_disabled": True,
+    }
+    with patch("src.main.execute_swap", return_value={"status": "dry_run"}), patch(
+        "src.main.save_analysis"
+    ):
+        result = process_token(token, mode_settings, base_config, verbose=False)
+
+    assert result["executed"] is False
+    assert result["execution_mode"] == "DRY_RUN"
+    assert result["execution_status"] == "dry_run"
