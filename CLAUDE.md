@@ -1,7 +1,7 @@
 # CLAUDE.md — Crypto Bot (memecoin trading en Solana)
 
 Contexto de memoria del proyecto para agentes de IA. Mantener actualizado conforme
-evoluciona el código. Última revisión: 2026-09-18. Repo en **v2.1** (sobre el tag v2.0).
+evoluciona el código. Última revisión: 2026-09-18. Repo en **v2.2.1**.
 
 ## 1. Resumen del proyecto
 
@@ -38,8 +38,8 @@ El token/creador nunca deben ser quemados; siempre obedecer los límites de ries
 | `utils.py` | `retry_with_backoff` (3 intentos, backoff 0.5 → 1.0 → 2.0s), `format_sol`, `safe_float` | ✅ activo |
 
 `config.py`: 3 modos (`conservador` / `equilibrado` / `agresivo`) con parámetros
-(mc_min/max, max_age_min, global_fees, base_buy). `config/config.yaml` existe pero
-**no se usa**; la configuración real viene de `.env`.
+(mc_min/max, max_age_min, global_fees, base_buy). La configuración real viene de
+`.env` (el antiguo `config/config.yaml` fue eliminado, no se usaba).
 
 Variables `.env` (ver `.env.example`):
 `SOLANA_RPC_URL`, `HELIUS_API_KEY`, `WALLET_PRIVATE_KEY` (aún sin usar — Fase A),

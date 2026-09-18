@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a bug to help us improve
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report. Please **do not**
+        paste secrets (`WALLET_PRIVATE_KEY`, full `.env`).
+  - type: input
+    id: version
+    attributes:
+      label: Version / tag
+      description: Tag or commit you're on (see `git describe --tags`)
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Manual (src.main)
+        - Automatic (15s loop)
+        - Dashboard (Streamlit)
+        - Tests / CI
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened vs what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Set up .env with ...
+        2. Run `venv/bin/python -m src.main`
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Paste log lines that show the failure (no secrets, please).
+    validations:
+      required: false
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python version, RPC provider if relevant.
+    validations:
+      required: false

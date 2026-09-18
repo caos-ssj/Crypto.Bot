@@ -1,5 +1,7 @@
 # Crypto Bot — Trading autónomo de memecoins en Solana
 
+<p align="center"><b><a href="README.md">🇪🇸 Español</a> · <a href="README.EN.md">🇬🇧 English</a></b></p>
+
 ```
   ██████╗██████╗ ██╗   ██╗██████╗ ████████╗ ██████╗
  ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗╚══██╔══╝██╔═══██╗
@@ -10,12 +12,15 @@
         B  O  T   ·   S O L A N A   ·   2 0 2 6
 ```
 
-[![Versión](https://img.shields.io/badge/version-2.1-blue)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/version-2.2-blue)](CHANGELOG.md)
 [![Estado](https://img.shields.io/badge/status-in_development-yellow)]()
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)]()
+[![Solana](https://img.shields.io/badge/Solana-mainnet-9945FF?logo=solana)](https://solana.com)
 [![CI](https://img.shields.io/github/actions/workflow/status/caos-ssj/Crypto.Bot/ci.yml?branch=main&label=CI)]()
 [![Tests](https://img.shields.io/badge/tests-130-green)]()
 [![Cobertura](https://img.shields.io/badge/coverage-67%25-yellowgreen)]()
+[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)](dashboard.py)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 [![Licencia](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 Bot autónomo de trading de memecoins en **Solana**: detecta tokens nuevos con
@@ -30,8 +35,31 @@ gestión de riesgo activa (TP/SL/trailing) y un dashboard web para monitorearlo.
 
 ---
 
+## ⚙️ Características clave
+
+- 🤖 **Pipeline completo** · detección (DexScreener) → análisis on-chain (Helius) → IA local → decisión → ejecución (Jupiter)
+- 🛡️ **Scoring honesto** · 11 filtros ponderados; dato no verificado = `0 pts` + `missing`
+- 🎯 **Riesgo activo** · TP/SL/trailing, máx. 3 posiciones, pérdida diaria 0.5 SOL
+- 📊 **Dashboard web** (Streamlit) con posiciones y precios en vivo
+- 🧠 **IA local** (Qwen3 vía LM Studio) con fallback seguro, sin dependencia de nube
+
+## ⚡ Pruébalo en 3 comandos
+
+```bash
+git clone git@github.com:caosssj/Crypto.Bot.git && cd Crypto.Bot
+python3 -m venv venv && venv/bin/pip install -r requirements.txt
+venv/bin/python -m src.main
+```
+
+> El menú interactivo ofrece los modos manual/automático y el dashboard (Streamlit)
+> se abre con un comando propio. Sin `HELIUS_API_KEY` ni wallet el bot igual
+> detecta, puntúa y decide: solo agregas `.env` para activar el análisis on-chain.
+
+---
+
 ## Tabla de contenido
 
+- [Características clave](#características-clave)
 - [Cómo funciona](#cómo-funciona)
 - [Arquitectura](#arquitectura)
 - [Scoring: los 11 filtros](#scoring-los-11-filtros)
@@ -45,6 +73,7 @@ gestión de riesgo activa (TP/SL/trailing) y un dashboard web para monitorearlo.
 - [Testing y calidad](#testing-y-calidad)
 - [Documentación](#documentación)
 - [Roadmap](#roadmap)
+- [Contribuir](#contribuir)
 - [Licencia](#licencia)
 
 ---
@@ -196,9 +225,12 @@ crypto-bot/
 ├── dashboard.py         # dashboard web (Streamlit)
 ├── tests/               # 130 tests (pytest)
 ├── docs/                # arquitectura · filtros · riesgo · qa · bug-reports
+├── CONTRIBUTING.md      # cómo contribuir
+├── SECURITY.md          # política de divulgación de vulnerabilidades
+├── CODE_OF_CONDUCT.md
 ├── ruff.toml            # lint (queda bloqueante en CI)
 ├── requirements.txt
-└── .github/workflows/   # CI: ruff · black · pytest --cov
+└── .github/             # CI · issue/PR templates · dependabot · social preview
 ```
 
 ---
@@ -220,8 +252,7 @@ cp .env.example .env     # configura SOLANA_RPC_URL y HELIUS_API_KEY
 
 ## Configuración
 
-Toda la configuración viene de variables de entorno (`.env`). El archivo
-`config/config.yaml` existe pero **no se usa**.
+Toda la configuración viene de variables de entorno (`.env`).
 
 | Variable | Obligatoria | Descripción |
 |---|---|---|
@@ -280,12 +311,15 @@ venv/bin/black --check src/ tests/
 - [docs/bug-reports/](docs/bug-reports/) — bugs y lecciones aprendidas
 - [CHANGELOG.md](CHANGELOG.md) — historial de versiones
 - [CLAUDE.md](CLAUDE.md) — contexto de memoria para agentes de IA
+- [CONTRIBUTING.md](CONTRIBUTING.md) — cómo contribuir
+- [SECURITY.md](SECURITY.md) — política de seguridad
+- [docs/PUBLIC-LAUNCH-CHECKLIST.md](docs/PUBLIC-LAUNCH-CHECKLIST.md) — checklist para el lanzamiento público
 
 ---
 
 ## Roadmap
 
-**Hecho (v2.0 → v2.1):**
+**Hecho (v2.0 → v2.2):**
 
 - [x] Dashboard web (Streamlit) con sección de riesgo/posiciones en vivo
 - [x] Ejecución real de swaps (Jupiter v6 + solders) y ventas automáticas
@@ -306,6 +340,14 @@ venv/bin/black --check src/ tests/
 - [ ] Soporte multi-wallet
 - [ ] Fine-tuning del modelo de IA
 - [ ] Integración con Telegram
+
+---
+
+## Contribuir
+
+¿Ideas, bugs o features? Revisa [CONTRIBUTING.md](CONTRIBUTING.md), abre un
+[issue](https://github.com/caosssj/Crypto.Bot/issues) usando los templates y
+envía un PR. **PRs welcome** 👋
 
 ---
 

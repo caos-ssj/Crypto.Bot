@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an idea for this project
+title: "[feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What user need does this solve? (not just the implementation)
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How you'd like it to work.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: dropdown
+    id: risk_touch
+    attributes:
+      label: Does it touch risk management?
+      description: Risk limits (TP/SL, exposure, daily loss) are conservative by design.
+      options:
+        - "No"
+        - "Yes (explain the rationale for changing limits)"
+    validations:
+      required: true

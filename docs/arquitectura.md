@@ -93,8 +93,7 @@ sequenceDiagram
 
 ## Configuración
 
-La configuración **solo** viene de variables de entorno (`.env`). El archivo
-`config/config.yaml` existe pero **no se usa**.
+La configuración **solo** viene de variables de entorno (`.env`).
 
 Variables (ver `.env.example`): `SOLANA_RPC_URL`, `HELIUS_API_KEY`,
 `WALLET_PRIVATE_KEY` (base58, usada con `DRY_RUN=false`), `JUPITER_API_URL`,
