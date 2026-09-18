@@ -1,8 +1,10 @@
 """Fuente de datos: DexScreener para manual, perfiles recientes para auto."""
 
 from typing import Any
+
 import requests
 from loguru import logger
+
 from src.utils import safe_float
 
 
