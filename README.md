@@ -12,7 +12,7 @@
         B  O  T   ·   S O L A N A   ·   2 0 2 6
 ```
 
-[![Versión](https://img.shields.io/badge/version-2.2-blue)](CHANGELOG.md)
+[![Versión](https://img.shields.io/github/v/release/caos-ssj/Crypto.Bot?color=blue&label=versi%C3%B3n)](https://github.com/caos-ssj/Crypto.Bot/releases)
 [![Estado](https://img.shields.io/badge/status-in_development-yellow)]()
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)]()
 [![Solana](https://img.shields.io/badge/Solana-mainnet-9945FF?logo=solana)](https://solana.com)

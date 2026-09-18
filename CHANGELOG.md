@@ -1,5 +1,12 @@
 # Changelog
 
+## [v2.2.3] Badge de versión dinámico — 2026-09-18
+
+- Badge `versión` del README (ES/EN) pasa a dinámico
+  (`img.shields.io/github/v/release/...`), que se alimenta de la Release v2.2.
+
+---
+
 ## [v2.2.2] Licencia GPL-3.0 (copyleft) — 2026-09-18
 
 - `LICENSE` cambiada de MIT a **GNU GPL v3** (copyleft): los derivados deben
