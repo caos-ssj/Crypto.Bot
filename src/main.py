@@ -231,7 +231,7 @@ def process_token(
     if config["helius_api_key"]:
         try:
             token = enrich_token(token, config["helius_api_key"])
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Error enriqueciendo {token.get('symbol')}: {e}")
 
     # 2. Análisis por reglas (11 filtros)
@@ -247,7 +247,7 @@ def process_token(
                 base_url=config["lm_studio_url"],
                 model=config["lm_studio_model"],
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Error en IA para {token.get('symbol')}: {e}")
 
     # 4. Score combinado (70% reglas + 30% IA)
@@ -272,7 +272,7 @@ def process_token(
                 dry_run=config["dry_run"],
             )
             executed = swap_result.get("status") == "success"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Error en swap para {token.get('symbol')}: {e}")
 
     # 7. Resultado
@@ -304,7 +304,7 @@ def process_token(
         })
     try:
         save_analysis(result)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"No se pudo guardar en DB: {e}")
 
     # 9. Output
@@ -416,7 +416,7 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
 
         try:
             tokens = fetch_recent_memecoins()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             console.print(f"[red]Error obteniendo tokens: {e}[/]")
             return
 
@@ -429,7 +429,7 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
                 if register_detection(address):
                     new.append(token)
                     seen_tokens.add(address)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 console.print(f"[red]Error registrando {address[:8]}...: {exc}[/]")
 
         if not new:
@@ -441,9 +441,10 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
             try:
                 process_token(token, mode_settings, config, verbose=False)
                 mark_detection_processed(token["token_address"])
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 console.print(f"[red]Error en {token.get('symbol')}: {e}[/]")
 
+    scheduler: BlockingScheduler | None = None
     try:
         cycle_job()
         scheduler = BlockingScheduler()
@@ -451,10 +452,11 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):
         console.print("\n[yellow]Bot detenido.[/]")
-        try:
-            scheduler.shutdown(wait=False)
-        except Exception:
-            pass
+        if scheduler is not None:
+            try:
+                scheduler.shutdown(wait=False)
+            except Exception as e:  # noqa: BLE001
+                logger.debug(f"Error cerrando scheduler: {e}")
 
 
 def change_mode(config: dict[str, Any]) -> None:
@@ -487,7 +489,7 @@ def main() -> int:
     # Inicializar base de datos
     try:
         init_db()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         console.print(f"[red]Error inicializando DB: {e}[/]")
         return 1
 
