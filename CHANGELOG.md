@@ -1,5 +1,31 @@
 # Changelog
 
+## [v2.2] Hardening de CI, documentación profesional y revisión crítica de QA — 2026-09-18
+
+### CI endurecido (ahora bloqueante)
+- Eliminado `|| true` de ruff/black: el pipeline solo pasa si lint y formato OK.
+- Tests con cobertura obligatoria: `pytest --cov=src --cov-fail-under=60`
+  (130 tests, 67 % actual).
+- Nuevo `ruff.toml`: `BLE001`/`S110` permitidos solo en fronteras de API.
+
+### Documentación profesional
+- README reescrito: badges corregidos, Mermaid del pipeline y la decisión, scoring
+  visual, modos/riesgo reales, roadmap honesto.
+- `docs/arquitectura.md`: solo `.env`, SQLite, diagramas de componentes y secuencia.
+- `docs/filtros.md`: escalera de decisión, barras de peso, T-05 corregido.
+- `docs/riesgo.md`: alineado al código real (sin artefactos de v1).
+- Capturas reales del dashboard y del reporte CLI (`docs/assets`).
+
+### Revisión crítica de QA
+- 9 bug-reports (`bug-014` → `bug-022`) + `REVISION-CRITICA-2026-09-18.md`.
+- Hallazgos de alta severidad (014/015) quedan documentados para la siguiente
+  iteración; este commit es solo documentación.
+
+### Tests
+- 130 tests, cobertura 67 %. `ruff` y `black` limpios.
+
+---
+
 ## [v2.1] Dashboard de riesgo, verificación en vivo y RPC robusto — 2026-09-18
 
 ### Verificación en vivo (smoke test runtime)

@@ -187,3 +187,19 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
   `docs/bug-reports/`, `CHANGELOG.md`.
 - Fuentes de datos: **DexScreener** (precios/liquidez), **Helius RPC** (on-chain),
   **Jupiter API v6** (quotes/swaps), **LM Studio** (IA local).
+
+## 10. Release: versionado y tags
+
+Cada actualización del repo se cierra con un **tag anotado** (nunca lightweight).
+
+- **SemVer**:
+  - MAJOR (`v3.0`): cambio incompatible (migración de DB, quitar `DRY_RUN` por defecto…).
+  - MINOR (`v2.x`): funcionalidad notable (una feature, un módulo).
+  - PATCH (`v2.x.y`): fix de bug, docs, CI, refactors sin cambio de comportamiento.
+- **Rutina**:
+  1. Añadir entrada `[vX.Y.Z]` en `CHANGELOG.md`.
+  2. Commit de la entrada.
+  3. Tag anotado sobre ese commit: `git tag -a vX.Y.Z -m "..."`.
+  4. `git push origin main --tags`.
+- El HEAD siempre debe llevar una versión etiquetada; **nunca dejar releases sin
+  tag** (v2.1 quedó huérfana; se recuperó con backfill).
