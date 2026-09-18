@@ -8,7 +8,7 @@ from src.storage import (
     init_db,
     save_analysis,
     get_recent_analyses,
-    get_stats,
+    get_stats,\n    register_detection,\n    mark_detection_processed,\n    get_detection,\n    save_execution,
 )
 
 
@@ -91,3 +91,45 @@ def test_get_stats_empty_db(temp_db):
     stats = get_stats(temp_db)
     assert stats["total"] == 0
     assert stats["compra"] == 0
+
+def test_detection_persists_across_calls(temp_db):
+    init_db(temp_db)
+    assert register_detection("TOKEN-A", temp_db) is True
+    assert register_detection("TOKEN-A", temp_db) is False
+
+    detection = get_detection("TOKEN-A", temp_db)
+    assert detection is not None
+    assert detection["status"] == "DETECTED"
+
+    mark_detection_processed("TOKEN-A", db_path=temp_db)
+    detection = get_detection("TOKEN-A", temp_db)
+    assert detection["status"] == "PROCESSED"
+    assert detection["processed_at"] is not None
+
+
+def test_execution_is_idempotent(temp_db):
+    init_db(temp_db)
+    execution = {
+        "execution_id": "exec-1",
+        "signal_id": "signal-1",
+        "token_address": "TOKEN-A",
+        "mode": "DRY_RUN",
+        "status": "dry_run",
+        "amount_sol": 0.01,
+        "reason": None,
+    }
+    save_execution(execution, temp_db)
+    execution["status"] = "success"
+    execution["transaction_signature"] = "SIG-1"
+    save_execution(execution, temp_db)
+
+    from src.storage import _connect
+    with _connect(temp_db) as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS count, status, transaction_signature FROM executions WHERE execution_id = ?",
+            ("exec-1",),
+        ).fetchone()
+
+    assert row["count"] == 1
+    assert row["status"] == "success"
+    assert row["transaction_signature"] == "SIG-1"
