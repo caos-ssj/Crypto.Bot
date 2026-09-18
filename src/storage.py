@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
 from loguru import logger
 
 DEFAULT_DB_PATH = "logs/bot.db"
