@@ -1,8 +1,10 @@
 """Tests para utilidades."""
 
 from unittest.mock import MagicMock
+
 import pytest
-from src.utils import retry_with_backoff, format_sol, safe_float
+
+from src.utils import format_sol, retry_with_backoff, safe_float
 
 
 def test_retry_with_backoff_success_first_try():
