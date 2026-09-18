@@ -2,8 +2,9 @@
 
 import json
 from typing import Any
-from openai import OpenAI
+
 from loguru import logger
+from openai import OpenAI
 
 
 DEFAULT_MODEL = "qwen/qwen3-4b-2507"
