@@ -41,7 +41,6 @@ def _normalize_pair(raw: dict[str, Any]) -> dict[str, Any] | None:
         "dex_id": raw.get("dexId", "?"),
         "raw": raw,
         "age_minutes": int((__import__("time").time() * 1000 - raw.get("pairCreatedAt", 0)) / 60000) if raw.get("pairCreatedAt") else 0,
-"creator_address": base.get("address", ""),
     }
 
 
@@ -66,7 +65,7 @@ def fetch_by_address(address: str) -> dict[str, Any] | None:
         # Tomar el par con más liquidez
         best = max(solana, key=lambda p: safe_float((p.get("liquidity") or {}).get("usd")))
         return _normalize_pair(best)
-    except Exception as e:
+    except requests.RequestException as e:
         logger.error(f"Error buscando por address: {e}")
         return None
 
@@ -91,7 +90,7 @@ def fetch_by_symbol(symbol: str) -> list[dict[str, Any]]:
         result = [t for t in normalized if t is not None]
         result.sort(key=lambda t: t["liquidity_usd"], reverse=True)
         return result[:5]  # top 5
-    except Exception as e:
+    except requests.RequestException as e:
         logger.error(f"Error buscando por símbolo: {e}")
         return []
 
@@ -115,6 +114,6 @@ def fetch_recent_memecoins() -> list[dict[str, Any]]:
         solana = [p for p in pairs if p.get("chainId") == "solana"]
         normalized = [_normalize_pair(p) for p in solana]
         return [t for t in normalized if t is not None]
-    except Exception as e:
+    except requests.RequestException as e:
         logger.error(f"Error fetch recientes (query={query}): {e}")
         return []
