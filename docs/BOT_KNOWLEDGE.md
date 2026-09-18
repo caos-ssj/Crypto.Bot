@@ -19,11 +19,12 @@ Detección (DexScreener) → Análisis (11 filtros) → IA local (Qwen3)
 
 ## 2. Estado actual
 
-- **Versión:** v2.0 — commiteado en `git` y tag subido a GitHub (`caos-ssj/Crypto.Bot`).
-- **Tests:** 129 de 129 pasando. Lint: solo 15 avisos pre-existentes. Black: limpio.
-- **Flujo validado en vivo**: la Fase B (scoring honesto) y la Fase A (wallet real +
-  riesgo) están implementadas y probadas. La operación real (no simulada) requiere
-  alinear `WALLET_PRIVATE_KEY` y `DRY_RUN=false`.
+- **Versión:** v2.1 (sobre el tag v2.0). Commiteado en `git` y subido a GitHub
+  (`caos-ssj/Crypto.Bot`).
+- **Tests:** 130 de 130 pasando. Lint: solo 15 avisos pre-existentes. Black: limpio.
+- **Verificado en vivo (smoke test)**: modo automático y manual PASS sin excepciones;
+  la IA puntúa con Qwen3/Bionic cuando el servidor `:1234` está abierto y cae a
+  fallback seguro (score 0) si no — el bot nunca se rompe por eso.
 - **Persistencia:** SQLite en `logs/bot.db` (tablas `analyses`, `positions`,
   `seen_tokens`).
 
@@ -149,8 +150,8 @@ asume que un token es seguro por falta de datos. `MISSING_INDICATORS` en
 
 ```bash
 venv/bin/python -m src.main           # menú interactivo (manual/automático)
-venv/bin/python -m pytest tests/ -q   # 129 tests
-streamlit run dashboard.py            # dashboard web
+venv/bin/python -m pytest tests/ -q   # 130 tests
+streamlit run dashboard.py            # dashboard web (con posiciones en vivo)
 ```
 
 | Chequeo | Comando |
@@ -158,6 +159,11 @@ streamlit run dashboard.py            # dashboard web
 | Tests | `venv/bin/python -m pytest tests/ -q` |
 | Lint | `venv/bin/ruff check src/ tests/` |
 | Formato | `venv/bin/black --check src/ tests/` |
+
+**Dashboard** (v2): además del análisis histórico muestra **Riesgo/Posiciones** —
+posiciones abiertas con precio en vivo (entrada/actual/TP/SL/trailing/P&L), pérdida
+diaria realizada, P&L acumulado e historial de cerradas. La hora se muestra en la zona
+local del sistema.
 
 `dashboard.py` no es black-limpio (intencional; no tocarlo con black automático).
 CI (`.github/workflows/ci.yml`): ruff/black/pytest con `|| true`.

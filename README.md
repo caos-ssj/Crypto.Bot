@@ -3,7 +3,7 @@
 ![Version](https://img.shields.io/badge/version-2.0-blue)
 ![Status](https://img.shields.io/badge/status-in_development-yellow)
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
-![Tests](https://img.shields.io/badge/tests-129-green)
+![Tests](https://img.shields.io/badge/tests-130-green)
 ![CI](https://github.com/caos-ssj/Crypto-Bot/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -34,7 +34,8 @@ Detalle completo en [docs/arquitectura.md](docs/arquitectura.md).
   Price-impact máximo 5%.
 - **Gestión de riesgo activa**: máx 3 posiciones, pérdida diaria máx 0.5 SOL, TP +20%,
   SL -10%, trailing (+5% activa, distancia 10%), venta automática al tocar niveles.
-- **Dashboard** Streamlit (`dashboard.py`) sobre SQLite.
+- **Dashboard** Streamlit (`dashboard.py`) sobre SQLite, con sección de **riesgo/
+  posiciones** en vivo (TP/SL/trailing, P&L y pérdida diaria).
 
 ## Instalación
 

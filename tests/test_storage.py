@@ -6,6 +6,7 @@ import pytest
 
 from src.storage import (
     close_position,
+    get_closed_positions,
     get_open_positions,
     get_recent_analyses,
     get_seen_tokens,
@@ -166,6 +167,22 @@ def test_close_position_marks_closed(temp_db):
     assert get_open_positions(temp_db) == []
     closed_rows = close_position("TOK1", 0.0, 0.0, db_path=temp_db)  # idempotente
     assert closed_rows is False
+
+
+def test_get_closed_positions_history(temp_db):
+    """get_closed_positions devuelve cerradas ordenadas por cierre desc."""
+    init_db(temp_db)
+    save_position(_position("TOK1", "PRIMERA"), temp_db)
+    save_position(_position("TOK2", "SEGUNDA"), temp_db)
+    close_position("TOK1", exit_price=0.0015, pnl_sol=0.002, db_path=temp_db)
+    close_position("TOK2", exit_price=0.0009, pnl_sol=-0.003, db_path=temp_db)
+
+    closed = get_closed_positions(limit=10, db_path=temp_db)
+    assert len(closed) == 2
+    assert closed[0]["symbol"] == "SEGUNDA"  # más reciente primero
+    assert closed[0]["pnl_sol"] == pytest.approx(-0.003)
+    assert closed[1]["symbol"] == "PRIMERA"
+    assert {p["status"] for p in closed} == {"closed"}
 
 
 def test_update_position_state_trailing(temp_db):

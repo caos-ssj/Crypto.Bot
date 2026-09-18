@@ -1,5 +1,35 @@
 # Changelog
 
+## [v2.1] Dashboard de riesgo, verificación en vivo y RPC robusto — 2026-09-18
+
+### Verificación en vivo (smoke test runtime)
+- **Modo automático PASS** (~12 min): `monitor_positions` por ciclo sin errores, fetch
+  de tokens, procesado y `seen_tokens` persistidos, cero excepciones en todo el log.
+- **Modo manual PASS**: búsqueda por símbolo (POPCAT), enrich Helius con fallback RPC,
+  reporte completo y salida limpia.
+- **Hallazgo operacional**: si Bionic Studio/LM Studio no está sirviendo, la IA cae a
+  fallback (score 0) sin tumbar el bot — comportamiento correcto y verificado. Al
+  abrir el servidor, `get_ai_score` puntúa con normalidad (IA=10-30 en vivo).
+- El ciclo puede durar más de 15 s con muchos tokens nuevos (pipeline secuencial +
+  Helius sin batch); el scheduler salta intervalos que no caben (comportamiento
+  esperado, no bloquea ni encola).
+
+### Dashboard v2 — sección Riesgo/Posiciones
+- Métricas: posiciones abiertas (máx 3), pérdida diaria realizada (0.5 SOL), P&L
+  realizado acumulado y SL/trailing activos.
+- Tabla de posiciones abiertas con **precio en vivo** (DexScreener): entrada, actual,
+  TP +20%, SL −10%, trailing y P&L no realizado (% y SOL).
+- Historial de posiciones cerradas (`get_closed_positions`).
+- Hora local en la tabla (la DB guarda UTC; se convierte a la zona del sistema).
+
+### Fix y limpieza
+- Dashboard: conversión de timestamps robusta (`utc=True`) para zonas ya aware.
+- Storage: nuevo `get_closed_positions(limit)`.
+
+### Tests
+- Suite a **130** (eran 129): historial de posiciones cerradas. `ruff`: 15
+  pre-existentes sin nuevos; `black`: limpio.
+
 ## [Fase A] Wallet operativa: swaps reales y gestión de riesgo — 2026-09-18
 
 ### Ejecución real (executor)

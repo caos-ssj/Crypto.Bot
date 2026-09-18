@@ -270,6 +270,23 @@ def get_open_positions(
         conn.close()
 
 
+def get_closed_positions(
+    limit: int = 50,
+    db_path: str = DEFAULT_DB_PATH,
+) -> list[dict[str, Any]]:
+    """Posiciones cerradas (históricas), de la más reciente a la más antigua."""
+    conn = _connect(db_path)
+    try:
+        rows = conn.execute(
+            "SELECT * FROM positions WHERE status = 'closed' "
+            "ORDER BY closed_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
 def update_position_state(
     token_address: str,
     sl_price: float,
