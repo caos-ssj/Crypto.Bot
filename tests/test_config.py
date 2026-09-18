@@ -1,6 +1,7 @@
 """Tests para el módulo de configuración."""
 
 import pytest
+
 from src.config import get_mode_settings
 
 

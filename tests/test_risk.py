@@ -1,14 +1,15 @@
 """Tests para gestión de riesgo."""
 
 import pytest
+
 from src.risk import (
     Position,
-    check_take_profit,
-    check_stop_loss,
-    update_trailing_stop,
+    calculate_tp_sl,
     can_open_position,
     check_daily_limit,
-    calculate_tp_sl,
+    check_stop_loss,
+    check_take_profit,
+    update_trailing_stop,
 )
 
 

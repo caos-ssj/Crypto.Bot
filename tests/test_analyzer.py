@@ -1,19 +1,20 @@
 """Tests para el analizador de tokens (11 filtros)."""
 
 import pytest
+
 from src.analyzer import (
-    check_market_cap,
-    check_global_fees,
+    calculate_score,
     check_age,
-    check_security,
-    check_liquidity_ratio,
-    check_top_holders,
-    check_volume,
-    check_creator_age,
     check_authorities,
     check_bundles,
+    check_creator_age,
     check_dev_sell,
-    calculate_score,
+    check_global_fees,
+    check_liquidity_ratio,
+    check_market_cap,
+    check_security,
+    check_top_holders,
+    check_volume,
     decide,
 )
 from src.config import get_mode_settings
@@ -46,6 +47,20 @@ def test_check_global_fees_pass():
     assert pts == 20
 
 
+def test_check_global_fees_missing():
+    """Dato no verificado → 0 pts (nunca inflar)."""
+    pts, reason = check_global_fees({"global_fees_sol": None}, {"global_fees": 0.15})
+    assert pts == 0
+    assert "sin datos" in reason.lower()
+
+
+def test_check_age_missing():
+    """Edad sin fuente (pairCreatedAt ausente) → 0 pts."""
+    pts, reason = check_age({"age_minutes": None}, {"max_age_min": 1440})
+    assert pts == 0
+    assert "sin datos" in reason.lower()
+
+
 def test_check_age_pass(mode_eq):
     pts, _ = check_age({"age_minutes": 100}, mode_eq)
     assert pts == 15
@@ -61,6 +76,13 @@ def test_check_security_fail():
     token = {"has_bundles": True, "dev_has_sold": False}
     pts, _ = check_security(token)
     assert pts == 0
+
+
+def test_check_security_missing():
+    """Sin análisis on-chain → 0 pts (no asumir seguridad)."""
+    pts, reason = check_security({"has_bundles": None, "dev_has_sold": None})
+    assert pts == 0
+    assert "sin verificar" in reason.lower()
 
 
 def test_check_liquidity_ratio_pass():
@@ -90,6 +112,19 @@ def test_check_creator_age_pass():
     assert pts == 5
 
 
+def test_check_creator_age_missing():
+    """Sin wallet del dev detectada → 0 pts."""
+    pts, reason = check_creator_age({"creator_age_days": None})
+    assert pts == 0
+    assert "sin datos" in reason.lower()
+
+
+def test_check_creator_age_new_wallet():
+    """Creador reciente (≤3 días) → 0 pts."""
+    pts, _ = check_creator_age({"creator_age_days": 2})
+    assert pts == 0
+
+
 def test_check_authorities_pass():
     token = {"mint_authority_disabled": True, "freeze_authority_disabled": True}
     pts, _ = check_authorities(token)
@@ -101,9 +136,23 @@ def test_check_bundles_pass():
     assert pts == 5
 
 
+def test_check_bundles_missing():
+    """Sin escaneo on-chain → 0 pts."""
+    pts, reason = check_bundles({"has_bundles": None})
+    assert pts == 0
+    assert "sin datos" in reason.lower()
+
+
 def test_check_dev_sell_pass():
     pts, _ = check_dev_sell({"dev_has_sold": False})
     assert pts == 5
+
+
+def test_check_dev_sell_missing():
+    """Sin escaneo on-chain → 0 pts."""
+    pts, reason = check_dev_sell({"dev_has_sold": None})
+    assert pts == 0
+    assert "sin datos" in reason.lower()
 
 
 def test_calculate_score_perfect(mode_eq):
@@ -147,6 +196,52 @@ def test_calculate_score_zero(mode_eq):
 
 def test_decide_compra():
     assert decide(85) == "COMPRA"
+
+
+def test_calculate_score_missing_security_is_conservative(mode_eq):
+    """Sin datos on-chain los filtros de seguridad fallan (no inflan)."""
+    token = {
+        "market_cap": 50000,  # ok
+        "global_fees_sol": None,  # sin datos → 0
+        "age_minutes": 100,  # ok
+        "liquidity_usd": 10000,
+        "top_10_holders_pct": None,  # sin datos → 0
+        "volume_5min": 5000,  # ok
+        "creator_age_days": None,  # sin datos → 0
+        "mint_authority_disabled": True,  # ok
+        "freeze_authority_disabled": True,
+    }
+    score, details = calculate_score(token, mode_eq)
+
+    by_name = {d["filter"]: d for d in details}
+    assert by_name["security"]["status"] == "missing"
+    assert by_name["global_fees"]["status"] == "missing"
+    assert by_name["bundles"]["status"] == "missing"
+    assert by_name["top_holders"]["status"] == "missing"
+
+    # Se puntúa exactamente lo que está verificado (MC+edad+liq+vol+auth)
+    verified = 20 + 15 + 5 + 5 + 5  # market_cap, age, liq ratio, volume, authorities
+    expected = round(verified / 115 * 100)
+    assert score == expected
+
+
+def test_calculate_score_statuses(mode_eq):
+    """Status 'ok' para filtros que pasan, 'fail' para los que fallan con dato."""
+    token = {
+        "market_cap": 1,  # dato presente fuera de rango → fail
+        "global_fees_sol": 0.0,  # dato presente, bajo mínimo → fail
+        "age_minutes": 100,  # ok
+        "liquidity_usd": 0,
+        "top_10_holders_pct": 20.0,  # ok
+        "volume_5min": 1000,  # fail
+    }
+    _, details = calculate_score(token, mode_eq)
+    by_name = {d["filter"]: d for d in details}
+
+    assert by_name["market_cap"]["status"] == "fail"
+    assert by_name["age"]["status"] == "ok"
+    assert by_name["top_holders"]["status"] == "ok"
+    assert by_name["volume"]["status"] == "fail"
 
 
 def test_decide_observar():

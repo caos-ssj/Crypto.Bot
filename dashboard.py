@@ -167,8 +167,20 @@ if symbols:
         details = latest["details"]
         if details:
             for d in details:
-                mark = "✅" if d.get("points", 0) > 0 else "❌"
-                st.write(f"{mark} **{d.get('filter', '?')}** — {d.get('points', 0)} pts — {d.get('reason', '')}")
+                status = d.get("status")
+                if status == "missing":
+                    mark = "⚠️"
+                    style = ":gray[sin datos]"
+                elif d.get("points", 0) > 0:
+                    mark = "✅"
+                    style = ":green[ok]"
+                else:
+                    mark = "❌"
+                    style = ":red[fail]"
+                st.write(
+                    f"{mark} **{d.get('filter', '?')}** — "
+                    f"{d.get('points', 0)} pts ({style}) — {d.get('reason', '')}"
+                )
         else:
             st.write("Sin detalles disponibles")
 

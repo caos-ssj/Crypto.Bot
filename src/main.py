@@ -16,17 +16,41 @@ from rich.table import Table
 from rich.text import Text
 
 from src.ai import get_ai_score
-from src.analyzer import analyze_token
+from src.analyzer import analyze_token, decide
 from src.chain_data import enrich_token
 from src.config import get_mode_settings
-from src.executor import execute_swap
+from src.executor import (
+    LAMPORTS_PER_SOL,
+    execute_sell,
+    execute_swap,
+    load_wallet,
+    wallet_public_key,
+)
 from src.fetcher import (
     fetch_by_address,
     fetch_by_symbol,
     fetch_recent_memecoins,
 )
-from src.storage import init_db, save_analysis
-
+from src.risk import (
+    Position,
+    calculate_tp_sl,
+    can_open_position,
+    check_daily_limit,
+    check_stop_loss,
+    check_take_profit,
+    update_trailing_stop,
+)
+from src.storage import (
+    close_position,
+    get_open_positions,
+    get_seen_tokens,
+    get_today_realized_loss,
+    init_db,
+    mark_seen,
+    save_analysis,
+    save_position,
+    update_position_state,
+)
 
 # ============ CONSTANTES ============
 CYCLE_INTERVAL_SECONDS = 15
@@ -34,9 +58,30 @@ AI_WEIGHT = 0.3
 
 console = Console()
 CURRENT_CONFIG: dict[str, Any] = {}
+_WALLET_KEYPAIR: Any = None
+
+
+# ============ WALLET ============
+
+
+def get_wallet_keypair(config: dict[str, Any]) -> Any:
+    """Construye (y cachea) el Keypair de la wallet desde .env."""
+    global _WALLET_KEYPAIR
+    if _WALLET_KEYPAIR is not None:
+        return _WALLET_KEYPAIR
+
+    _WALLET_KEYPAIR = load_wallet(config.get("wallet_private_key", ""))
+    if _WALLET_KEYPAIR is not None:
+        console.print(f"[green]Wallet: {wallet_public_key(_WALLET_KEYPAIR)}[/]")
+    elif not config.get("dry_run", True):
+        console.print(
+            "[red]⚠ Sin WALLET_PRIVATE_KEY válida: no se podrá operar en real.[/]"
+        )
+    return _WALLET_KEYPAIR
 
 
 # ============ UI HELPERS ============
+
 
 def clear() -> None:
     """Limpia la pantalla."""
@@ -46,13 +91,27 @@ def clear() -> None:
 def show_banner() -> None:
     """Muestra el banner ASCII del bot."""
     banner = Text()
-    banner.append("  ██████╗██████╗ ██╗   ██╗██████╗ ████████╗ ██████╗ \n", style="bold cyan")
-    banner.append(" ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗╚══██╔══╝██╔═══██╗\n", style="bold cyan")
-    banner.append(" ██║     ██████╔╝ ╚████╔╝ ██████╔╝   ██║   ██║   ██║\n", style="bold cyan")
-    banner.append(" ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝    ██║   ██║   ██║\n", style="bold cyan")
-    banner.append(" ╚██████╗██║  ██║   ██║   ██║        ██║   ╚██████╔╝\n", style="bold cyan")
-    banner.append("  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝        ╚═╝    ╚═════╝ \n", style="bold cyan")
-    banner.append("         B  O  T   ·   S O L A N A   ·   2 0 2 6\n", style="bold magenta")
+    banner.append(
+        "  ██████╗██████╗ ██╗   ██╗██████╗ ████████╗ ██████╗ \n", style="bold cyan"
+    )
+    banner.append(
+        " ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗╚══██╔══╝██╔═══██╗\n", style="bold cyan"
+    )
+    banner.append(
+        " ██║     ██████╔╝ ╚████╔╝ ██████╔╝   ██║   ██║   ██║\n", style="bold cyan"
+    )
+    banner.append(
+        " ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝    ██║   ██║   ██║\n", style="bold cyan"
+    )
+    banner.append(
+        " ╚██████╗██║  ██║   ██║   ██║        ██║   ╚██████╔╝\n", style="bold cyan"
+    )
+    banner.append(
+        "  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝        ╚═╝    ╚═════╝ \n", style="bold cyan"
+    )
+    banner.append(
+        "         B  O  T   ·   S O L A N A   ·   2 0 2 6\n", style="bold magenta"
+    )
 
     console.print(Align.center(banner))
     console.print()
@@ -88,7 +147,9 @@ def show_main_menu() -> str:
     menu.add_row("[3]", "⚙️  Cambiar modo de operación")
     menu.add_row("[0]", "🚪 Salir")
 
-    console.print(Panel(menu, title="[bold cyan]MENÚ PRINCIPAL[/]", border_style="cyan"))
+    console.print(
+        Panel(menu, title="[bold cyan]MENÚ PRINCIPAL[/]", border_style="cyan")
+    )
 
     return Prompt.ask(
         "\n[bold yellow]Opción[/]",
@@ -111,11 +172,13 @@ def show_token_report(
     addr = token.get("token_address", "?")
 
     console.print()
-    console.print(Panel(
-        f"[bold white]{symbol}[/] — {name}\n[dim]{addr}[/]",
-        title="[bold cyan]TOKEN[/]",
-        border_style="cyan",
-    ))
+    console.print(
+        Panel(
+            f"[bold white]{symbol}[/] — {name}\n[dim]{addr}[/]",
+            title="[bold cyan]TOKEN[/]",
+            border_style="cyan",
+        )
+    )
 
     # Tabla de datos de mercado
     data = Table(title="📊 Datos de Mercado", box=box.SIMPLE_HEAVY, title_style="bold")
@@ -147,7 +210,12 @@ def show_token_report(
     filtros.add_column("Razón", style="white")
 
     for d in analysis.get("details", []):
-        mark = "[green]✓[/]" if d["points"] > 0 else "[red]✗[/]"
+        if d.get("status") == "missing":
+            mark = "[yellow]⚠[/]"
+        elif d["points"] > 0:
+            mark = "[green]✓[/]"
+        else:
+            mark = "[red]✗[/]"
         filtros.add_row(mark, d["filter"], str(d["points"]), d["reason"])
 
     console.print(filtros)
@@ -189,13 +257,14 @@ def show_token_report(
 
 # ============ CONFIG ============
 
+
 def load_env_config() -> dict[str, Any]:
     """Carga configuración desde .env."""
     load_dotenv()
 
     rpc_url = os.getenv("SOLANA_RPC_URL")
     if not rpc_url:
-        raise EnvironmentError(
+        raise OSError(
             "Falta SOLANA_RPC_URL en .env. "
             "Copia .env.example a .env y configura las variables."
         )
@@ -204,6 +273,7 @@ def load_env_config() -> dict[str, Any]:
         "rpc_url": rpc_url,
         "helius_api_key": os.getenv("HELIUS_API_KEY", ""),
         "birdeye_api_key": os.getenv("BIRDEYE_API_KEY", ""),
+        "wallet_private_key": os.getenv("WALLET_PRIVATE_KEY", ""),
         "mode": os.getenv("MODE", "equilibrado"),
         "dry_run": os.getenv("DRY_RUN", "true").lower() == "true",
         "lm_studio_url": os.getenv("LM_STUDIO_URL", "http://localhost:1234"),
@@ -213,6 +283,7 @@ def load_env_config() -> dict[str, Any]:
 
 
 # ============ CORE LOGIC ============
+
 
 def process_token(
     token: dict[str, Any],
@@ -247,27 +318,39 @@ def process_token(
     # 4. Score combinado (70% reglas + 30% IA)
     final_score = round((1 - AI_WEIGHT) * rule_score + AI_WEIGHT * ai_result["score"])
 
-    # 5. Decisión
-    if final_score > 70:
-        action = "COMPRA"
-    elif final_score >= 50:
-        action = "OBSERVAR"
-    else:
-        action = "EVITAR"
+    # 5. Decisión unificada (analyzer.decide)
+    action = decide(final_score)
 
-    # 6. Ejecución
+    # 6. Ejecución (con límites de riesgo en modo real)
     executed = False
     swap_result = None
     if action == "COMPRA":
-        try:
-            swap_result = execute_swap(
-                token_address=token["token_address"],
-                amount_sol=mode_settings.get("base_buy", 0.01),
-                dry_run=config["dry_run"],
+        open_positions = get_open_positions()
+        daily_loss = get_today_realized_loss()
+        risk_ok = config["dry_run"] or (
+            can_open_position(open_positions) and check_daily_limit(daily_loss)
+        )
+        if not risk_ok:
+            logger.warning(
+                f"Riesgo bloquea compra de {token.get('symbol')}: "
+                f"{len(open_positions)} posiciones, "
+                f"pérdida diaria {daily_loss:.3f} SOL"
             )
-            executed = swap_result.get("status") in ("dry_run", "success")
-        except Exception as e:
-            logger.warning(f"Error en swap para {token.get('symbol')}: {e}")
+        else:
+            wallet_keypair = get_wallet_keypair(config)
+            try:
+                swap_result = execute_swap(
+                    token_address=token["token_address"],
+                    amount_sol=mode_settings.get("base_buy", 0.01),
+                    wallet_keypair=wallet_keypair,
+                    dry_run=config["dry_run"],
+                    rpc_url=config["rpc_url"],
+                )
+                executed = swap_result.get("status") in ("dry_run", "success")
+                if swap_result.get("status") == "success":
+                    _open_position_from_swap(token, swap_result, config, mode_settings)
+            except Exception as e:
+                logger.warning(f"Error en swap para {token.get('symbol')}: {e}")
 
     # 7. Resultado
     result = {
@@ -290,7 +373,9 @@ def process_token(
     if verbose:
         show_token_report(token, analysis, ai_result, final_score, action)
     else:
-        score_style = "green" if final_score > 70 else ("yellow" if final_score >= 50 else "red")
+        score_style = (
+            "green" if final_score > 70 else ("yellow" if final_score >= 50 else "red")
+        )
         console.print(
             f"  [cyan]{token.get('symbol', '?'):<8}[/] "
             f"| Reglas=[yellow]{rule_score:>3}[/] "
@@ -302,7 +387,122 @@ def process_token(
     return result
 
 
+def _open_position_from_swap(
+    token: dict[str, Any],
+    swap_result: dict[str, Any],
+    config: dict[str, Any],
+    mode_settings: dict[str, Any],
+) -> None:
+    """Abre una posición en la DB tras una compra real exitosa."""
+    symbol = token.get("symbol", "?")
+    price = token.get("price_usd")
+    if not price:
+        try:
+            fresh = fetch_by_address(token["token_address"])
+            price = fresh.get("price_usd") if fresh else None
+        except Exception as e:  # noqa: BLE001 - frontera de red (DexScreener)
+            logger.warning(f"No se pudo obtener precio de {symbol}: {e}")
+            price = None
+    if not price:
+        logger.warning(f"Comprado pero sin entry price; no se abre posición: {symbol}")
+        return
+
+    amount_sol = swap_result.get("amount_sol", mode_settings.get("base_buy", 0.01))
+    tp, sl = calculate_tp_sl(price)
+    position = Position(
+        token_address=token["token_address"],
+        symbol=symbol,
+        entry_price=price,
+        amount_sol=amount_sol,
+        tp_price=tp,
+        sl_price=sl,
+    )
+    save_position(position.__dict__)
+    logger.info(
+        f"Posición abierta: {symbol} @ ${price:.8f} (TP ${tp:.8f}/SL ${sl:.8f})"
+    )
+
+
+def monitor_positions(config: dict[str, Any]) -> None:
+    """Monitorea posiciones abiertas: TP/SL/trailing + venta real."""
+    positions = get_open_positions()
+    if not positions:
+        return
+
+    keypair = get_wallet_keypair(config)
+    console.print(f"[cyan]📊 Monitoreo: {len(positions)} posición(es) abierta(s)[/]")
+
+    for row in positions:
+        symbol = row.get("symbol", "?")
+        address = row["token_address"]
+        try:
+            fresh = fetch_by_address(address)
+            price = fresh.get("price_usd") if fresh else None
+            if not price:
+                console.print(f"[dim]Sin precio para {symbol}, se omite.[/]")
+                continue
+
+            position = Position(
+                token_address=address,
+                symbol=symbol,
+                entry_price=row.get("entry_price") or 0.0,
+                amount_sol=row.get("amount_sol") or 0.0,
+                tp_price=row.get("tp_price") or 0.0,
+                sl_price=row.get("sl_price") or 0.0,
+                trailing_active=bool(row.get("trailing_active")),
+                max_price_reached=row.get("max_price_reached") or 0.0,
+                opened_at=row.get("opened_at") or "",
+            )
+            before_sl = position.sl_price
+            update_trailing_stop(position, price)
+            if position.sl_price != before_sl or position.trailing_active:
+                update_position_state(
+                    address,
+                    position.sl_price,
+                    position.trailing_active,
+                    position.max_price_reached,
+                )
+                console.print(
+                    f"[yellow]↗ Trailing {symbol}: SL a ${position.sl_price:.8f}[/]"
+                )
+
+            hit_tp = check_take_profit(position, price)
+            hit_sl = check_stop_loss(position, price)
+            if hit_tp or hit_sl:
+                reason = "TP" if hit_tp else "SL"
+                console.print(
+                    f"[yellow]🎯 {reason} en {symbol} @ ${price:.8f} — vendiendo...[/]"
+                )
+                sell = execute_sell(
+                    address,
+                    keypair,
+                    config["rpc_url"],
+                    dry_run=config["dry_run"],
+                )
+                if sell.get("status") == "success":
+                    received_sol = sell.get("out_amount_sol", 0) / LAMPORTS_PER_SOL
+                    pnl = received_sol - position.amount_sol
+                elif sell.get("status") == "dry_run":
+                    pnl = (
+                        position.amount_sol * (price / position.entry_price - 1)
+                        if position.entry_price
+                        else 0.0
+                    )
+                else:
+                    console.print(
+                        f"[red]Venta falló ({sell.get('reason')}) en {symbol} — se mantiene la posición.[/]"
+                    )
+                    continue
+                close_position(address, price, pnl)
+                console.print(
+                    f"[green]↩ {symbol} cerrado: pnl {pnl:+.4f} SOL (${price:.8f})[/]"
+                )
+        except Exception as e:  # noqa: BLE001 - el error no debe cortar el ciclo
+            console.print(f"[red]Error monitoreando {symbol}: {e}[/]")
+
+
 # ============ MODOS ============
+
 
 def run_manual_mode(config: dict[str, Any], mode_settings: dict[str, Any]) -> None:
     """Modo manual: analizar un token específico."""
@@ -378,20 +578,31 @@ def run_manual_mode(config: dict[str, Any], mode_settings: dict[str, Any]) -> No
 def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) -> None:
     """Modo automático: scheduler continuo."""
     clear()
-    console.print(Panel(
-        f"[bold]MODO AUTOMÁTICO[/]\n"
-        f"[dim]Ciclo cada {CYCLE_INTERVAL_SECONDS}s. Ctrl+C para detener.[/]",
-        border_style="cyan",
-    ))
+    console.print(
+        Panel(
+            f"[bold]MODO AUTOMÁTICO[/]\n"
+            f"[dim]Ciclo cada {CYCLE_INTERVAL_SECONDS}s. Ctrl+C para detener.[/]",
+            border_style="cyan",
+        )
+    )
     console.print()
 
-    seen_tokens: set[str] = set()
+    # Cargar histórico de tokens ya procesados (persistido en SQLite).
+    seen_tokens: set[str] = get_seen_tokens()
+    console.print(f"[dim]Historial: {len(seen_tokens)} tokens ya procesados.[/]")
+    console.print()
+
     cycle_num = 0
 
     def cycle_job() -> None:
         nonlocal cycle_num
         cycle_num += 1
         console.rule(f"[bold cyan]Ciclo #{cycle_num}[/]")
+
+        try:
+            monitor_positions(config)
+        except Exception as e:  # noqa: BLE001 - frontera de red, no corta el ciclo
+            console.print(f"[red]Error en monitoreo: {e}[/]")
 
         try:
             tokens = fetch_recent_memecoins()
@@ -407,9 +618,11 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
 
         console.print(f"[yellow]🔍 {len(new)} tokens nuevos[/]")
         for token in new:
+            address = token["token_address"]
             try:
                 process_token(token, mode_settings, config, verbose=False)
-                seen_tokens.add(token["token_address"])
+                seen_tokens.add(address)
+                mark_seen(address)
             except Exception as e:
                 console.print(f"[red]Error en {token.get('symbol')}: {e}[/]")
 
@@ -441,13 +654,14 @@ def change_mode(config: dict[str, Any]) -> None:
 
 # ============ MAIN ============
 
+
 def main() -> int:
     """Punto de entrada del bot."""
     global CURRENT_CONFIG
 
     try:
         config = load_env_config()
-    except EnvironmentError as e:
+    except OSError as e:
         console.print(f"[red]Error: {e}[/]")
         return 1
 

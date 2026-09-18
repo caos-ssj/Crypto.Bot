@@ -1,11 +1,11 @@
 """Tests para el módulo de IA local (LM Studio)."""
 
 from unittest.mock import MagicMock, patch
-import pytest
+
 from src.ai import (
     build_prompt,
-    parse_ai_response,
     get_ai_score,
+    parse_ai_response,
 )
 
 
@@ -61,10 +61,10 @@ def test_get_ai_score_success():
     mock_response = MagicMock()
     mock_response.choices = [MagicMock()]
     mock_response.choices[0].message.content = '{"score": 85, "reason": "Buen token"}'
-    
+
     with patch("src.ai._call_lm_studio", return_value=mock_response):
         result = get_ai_score({"symbol": "T"}, base_url="http://localhost:1234")
-    
+
     assert result["score"] == 85
     assert result["fallback"] is False
 
@@ -73,7 +73,7 @@ def test_get_ai_score_api_error():
     """Retorna fallback si la API falla."""
     with patch("src.ai._call_lm_studio", side_effect=ConnectionError("no server")):
         result = get_ai_score({"symbol": "T"}, base_url="http://localhost:1234")
-    
+
     assert result["score"] == 0
     assert result["fallback"] is True
 
@@ -83,9 +83,9 @@ def test_get_ai_score_invalid_response():
     mock_response = MagicMock()
     mock_response.choices = [MagicMock()]
     mock_response.choices[0].message.content = "texto sin json"
-    
+
     with patch("src.ai._call_lm_studio", return_value=mock_response):
         result = get_ai_score({"symbol": "T"}, base_url="http://localhost:1234")
-    
+
     assert result["score"] == 0
     assert result["fallback"] is True
