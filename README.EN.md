@@ -21,7 +21,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-67%25-yellowgreen)]()
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)](dashboard.py)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 
 Autonomous **Solana memecoin** trading bot: it detects new tokens with
 DexScreener, analyzes them with **11 on-chain filters** (Helius), scores them with
@@ -352,7 +352,10 @@ send a PR. **PRs welcome** 👋
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+**GNU GPL v3** — free software with **copyleft**: anyone may use, modify and
+distribute it, but derivative works must remain **open-source** under the same
+license (it cannot be reused in closed source or sold without opening the code).
+See [LICENSE](LICENSE).
 
 **Disclaimer:** this software is distributed **for educational and research
 purposes**. It does not provide financial advice. Cryptocurrency trading carries

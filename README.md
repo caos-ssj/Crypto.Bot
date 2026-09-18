@@ -21,7 +21,7 @@
 [![Cobertura](https://img.shields.io/badge/coverage-67%25-yellowgreen)]()
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)](dashboard.py)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
-[![Licencia](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Licencia](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 
 Bot autónomo de trading de memecoins en **Solana**: detecta tokens nuevos con
 DexScreener, los analiza con **11 filtros on-chain** (Helius), los evalúa con
@@ -353,7 +353,10 @@ envía un PR. **PRs welcome** 👋
 
 ## Licencia
 
-MIT — ver [LICENSE](LICENSE).
+**GNU GPL v3** — código libre con **copyleft**: cualquiera puede usar, modificar y
+distribuir el software, pero las obras derivadas deben seguir siendo
+**open-source** bajo la misma licencia (no se puede reutilizar en closed-source ni
+venderlo sin abrir el código). Ver [LICENSE](LICENSE).
 
 **Disclaimer:** este software se distribuye **con fines educativos y de
 investigación**. No ofrece asesoría financiera. El trading de criptomonedas

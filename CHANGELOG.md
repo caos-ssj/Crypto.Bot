@@ -1,5 +1,18 @@
 # Changelog
 
+## [v2.2.2] Licencia GPL-3.0 (copyleft) — 2026-09-18
+
+- `LICENSE` cambiada de MIT a **GNU GPL v3** (copyleft): los derivados deben
+  seguir siendo open-source; no se puede reutilizar en closed-source.
+- README (ES/EN): badge y sección de licencia actualizados.
+- `social-preview.png` regenerado (pie "copyleft GPL-3.0").
+
+> El 2026-09-18 el historial fue reescrito (purga de artefactos personales y
+> email → `caosssj@users.noreply.github.com`); los tags v2.0/v2.1/v2.2 apuntan a
+> commits equivalentes reescritos.
+
+---
+
 ## [v2.2.1] Preparación para lanzamiento público (GitHub) — 2026-09-18
 
 ### Community-ready
