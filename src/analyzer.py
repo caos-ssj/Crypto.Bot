@@ -10,44 +10,44 @@ MAX_SCORE = 115
 
 def check_market_cap(token: dict[str, Any], mode_settings: dict[str, Any]) -> tuple[int, str]:
     """Filtro 1: Market Cap en rango (20 pts)."""
-    mc = token.get("market_cap", 0)
+    mc = token.get("market_cap")
     mc_min = mode_settings["mc_min"]
     mc_max = mode_settings["mc_max"]
-    if mc_min <= mc <= mc_max:
+    if mc is not None and mc_min <= mc <= mc_max:
         return 20, f"MC ${mc:,.0f} OK"
     return 0, f"MC ${mc:,.0f} fuera de rango"
 
 
 def check_global_fees(token: dict[str, Any], mode_settings: dict[str, Any]) -> tuple[int, str]:
     """Filtro 2: Global Fees acumuladas (20 pts)."""
-    fees = token.get("global_fees_sol", 0)
+    fees = token.get("global_fees_sol")
     min_fees = mode_settings["global_fees"]
-    if fees > min_fees:
+    if fees is not None and fees > min_fees:
         return 20, f"Fees {fees:.3f} SOL OK"
     return 0, f"Fees {fees:.3f} SOL bajo mínimo ({min_fees})"
 
 
 def check_age(token: dict[str, Any], mode_settings: dict[str, Any]) -> tuple[int, str]:
     """Filtro 3: Edad del token (15 pts)."""
-    age = token.get("age_minutes", 999999)
+    age = token.get("age_minutes")
     max_age = mode_settings["max_age_min"]
-    if age < max_age:
+    if age is not None and age >= 0 and age < max_age:
         return 15, f"Edad {age}min OK"
     return 0, f"Edad {age}min excede {max_age}min"
 
 
 def check_security(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 4: Sin bundles y dev no ha vendido (25 pts)."""
-    if not token.get("has_bundles", True) and not token.get("dev_has_sold", True):
+    if token.get("has_bundles") is False and token.get("dev_has_sold") is False:
         return 25, "Seguridad OK"
     return 0, "Falló seguridad (bundles o dev sell)"
 
 
 def check_liquidity_ratio(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 5: Ratio liquidez/MC > 3% (5 pts)."""
-    mc = token.get("market_cap", 0)
-    liq = token.get("liquidity_usd", 0)
-    if mc <= 0:
+    mc = token.get("market_cap")
+    liq = token.get("liquidity_usd")
+    if mc is None or liq is None or mc <= 0 or liq < 0:
         return 0, "MC inválido"
     ratio = (liq / mc) * 100
     if ratio > 3.0:
@@ -57,47 +57,47 @@ def check_liquidity_ratio(token: dict[str, Any]) -> tuple[int, str]:
 
 def check_top_holders(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 6: Top-10 holders < 50% (5 pts)."""
-    pct = token.get("top_10_holders_pct", 100.0)
-    if pct < 50.0:
+    pct = token.get("top_10_holders_pct")
+    if pct is not None and 0 <= pct <= 100 and pct < 50.0:
         return 5, f"Top-10 {pct:.1f}% OK"
     return 0, f"Top-10 {pct:.1f}% concentrado"
 
 
 def check_volume(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 7: Volumen 5min > $2K (5 pts)."""
-    vol = token.get("volume_5min", 0)
-    if vol > 2000:
+    vol = token.get("volume_5min")
+    if vol is not None and vol >= 0 and vol > 2000:
         return 5, f"Volumen ${vol:,.0f} OK"
     return 0, f"Volumen ${vol:,.0f} bajo"
 
 
 def check_creator_age(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 8: Edad del creador > 3 días (5 pts)."""
-    age = token.get("creator_age_days", 0)
-    if age > 3:
+    age = token.get("creator_age_days")
+    if age is not None and age >= 0 and age > 3:
         return 5, f"Creator {age}d OK"
     return 0, f"Creator {age}d muy nuevo"
 
 
 def check_authorities(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 9: Mint y Freeze authority deshabilitadas (5 pts)."""
-    mint_off = token.get("mint_authority_disabled", False)
-    freeze_off = token.get("freeze_authority_disabled", False)
-    if mint_off and freeze_off:
+    mint_off = token.get("mint_authority_disabled")
+    freeze_off = token.get("freeze_authority_disabled")
+    if mint_off is True and freeze_off is True:
         return 5, "Autoridades deshabilitadas"
     return 0, "Autoridades activas"
 
 
 def check_bundles(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 10: Sin bundles detectados (5 pts)."""
-    if not token.get("has_bundles", True):
+    if token.get("has_bundles") is False:
         return 5, "Sin bundles"
     return 0, "Bundles detectados"
 
 
 def check_dev_sell(token: dict[str, Any]) -> tuple[int, str]:
     """Filtro 11: Dev no ha vendido (5 pts)."""
-    if not token.get("dev_has_sold", True):
+    if token.get("dev_has_sold") is False:
         return 5, "Dev no ha vendido"
     return 0, "Dev vendió tokens"
 
