@@ -25,7 +25,7 @@ from src.fetcher import (
     fetch_by_symbol,
     fetch_recent_memecoins,
 )
-from src.storage import init_db, save_analysis
+from src.storage import init_db, save_analysis, register_detection, mark_detection_processed, save_execution
 
 
 # ============ CONSTANTES ============
@@ -282,7 +282,20 @@ def process_token(
         "swap_result": swap_result,
     }
 
-    # 8. Guardar en SQLite
+    # 8. Persistir análisis y ejecución
+    if swap_result is not None:
+        import uuid
+        execution_id = f"{token['token_address']}-{uuid.uuid4().hex}"
+        save_execution({
+            "execution_id": execution_id,
+            "signal_id": token.get("token_address"),
+            "token_address": token["token_address"],
+            "mode": result["execution_mode"],
+            "status": swap_result.get("status", "unknown"),
+            "amount_sol": swap_result.get("amount_sol"),
+            "transaction_signature": swap_result.get("transaction_signature"),
+            "reason": swap_result.get("reason"),
+        })
     try:
         save_analysis(result)
     except Exception as e:
@@ -387,7 +400,7 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
     ))
     console.print()
 
-    seen_tokens: set[str] = set()\n    # NOTE: in-memory deduplication is intentionally retained for this phase.\n    # Persistent detection state will be introduced in the state/persistence phase.
+    seen_tokens: set[str] = set()
     cycle_num = 0
 
     def cycle_job() -> None:
@@ -401,7 +414,17 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
             console.print(f"[red]Error obteniendo tokens: {e}[/]")
             return
 
-        new = [t for t in tokens if t["token_address"] not in seen_tokens]
+        new = []
+        for token in tokens:
+            address = token["token_address"]
+            if address in seen_tokens:
+                continue
+            try:
+                if register_detection(address):
+                    new.append(token)
+                    seen_tokens.add(address)
+            except Exception as exc:
+                console.print(f"[red]Error registrando {address[:8]}...: {exc}[/]")
 
         if not new:
             console.print("[dim]Sin tokens nuevos.[/]")
@@ -411,7 +434,7 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
         for token in new:
             try:
                 process_token(token, mode_settings, config, verbose=False)
-                seen_tokens.add(token["token_address"])
+                mark_detection_processed(token["token_address"])
             except Exception as e:
                 console.print(f"[red]Error en {token.get('symbol')}: {e}[/]")
 
