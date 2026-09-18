@@ -25,7 +25,13 @@ from src.fetcher import (
     fetch_by_symbol,
     fetch_recent_memecoins,
 )
-from src.storage import init_db, save_analysis, register_detection, mark_detection_processed, save_execution
+from src.storage import (
+    init_db,
+    mark_detection_processed,
+    register_detection,
+    save_analysis,
+    save_execution,
+)
 
 
 # ============ CONSTANTES ============
@@ -195,7 +201,7 @@ def load_env_config() -> dict[str, Any]:
 
     rpc_url = os.getenv("SOLANA_RPC_URL")
     if not rpc_url:
-        raise EnvironmentError(
+        raise OSError(
             "Falta SOLANA_RPC_URL en .env. "
             "Copia .env.example a .env y configura las variables."
         )
