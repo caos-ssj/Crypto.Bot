@@ -1,6 +1,7 @@
 """Tests para main."""
 
 from unittest.mock import patch
+
 import pytest
 
 from src.main import load_env_config, process_token
@@ -11,9 +12,8 @@ from src.main import load_env_config, process_token
 def test_load_env_config_missing_rpc(monkeypatch):
     """Falla si falta SOLANA_RPC_URL."""
     monkeypatch.delenv("SOLANA_RPC_URL", raising=False)
-    with patch("src.main.load_dotenv"):
-        with pytest.raises(EnvironmentError):
-            load_env_config()
+    with patch("src.main.load_dotenv"), pytest.raises(EnvironmentError):
+        load_env_config()
 
 
 def test_load_env_config_ok(monkeypatch):
