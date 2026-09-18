@@ -1,7 +1,7 @@
 # CLAUDE.md — Crypto Bot (memecoin trading en Solana)
 
 Contexto de memoria del proyecto para agentes de IA. Mantener actualizado conforme
-evoluciona el código. Última revisión: 2026-09-18. Repo en tag **v2.0**.
+evoluciona el código. Última revisión: 2026-09-18. Repo en **v2.1** (sobre el tag v2.0).
 
 ## 1. Resumen del proyecto
 
@@ -127,7 +127,7 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
   efectivo era 0.05%).
 - **Limpieza:** eliminado `detector.py` y sus tests (código muerto); retries con backoff
   en fetcher/chain_data; docs y CHANGELOG actualizados.
-- **Tests:** 129 (eran 89). `ruff`: solo 15 pre-existentes (14 BLE001 + 1 S110), cero nuevos.
+- **Tests:** 130 (eran 89). `ruff`: solo 15 pre-existentes (14 BLE001 + 1 S110), cero nuevos.
 
 ## 8. Fase A — estado (wallet operativa en curso)
 
@@ -167,6 +167,17 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
   `WALLET_PRIVATE_KEY` cargada en `.env`).
 - Al vender en real, el SOL vuelve a la wallet pero no se monitoriza el balance SOL
   (falta componente de "caja" para reusar el saldo).
+
+### Verificación en vivo (2026-09-18, v2.1)
+- Smoke test: auto (~12 min) y manual PASS, cero excepciones; `monitor_positions` corre
+  por ciclo. **IA requiere que Bionic/LM Studio sirva en `:1234`**; si no, fallback
+  score 0 (seguro). Con Bionic abierto, Qwen3 puntúa en vivo.
+- Dashboard **v2**: sección Riesgo/Posiciones (precio en vivo DexScreener por
+  posición, pérdida diaria, P&L acumulado, historial cerradas) + hora local.
+  Storage: `get_closed_positions`.
+- Nota de rendimiento: un ciclo con muchos tokens nuevos puede durar >15 s (pipeline
+  secuencial + Helius sin batch); APScheduler salta los intervalos que no caben
+  (`maximum number of running instances reached`) — esperado, no encola ni rompe.
 
 ## 9. Roadmap (de README) y docs
 

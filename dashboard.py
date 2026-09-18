@@ -5,7 +5,15 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
-from src.storage import get_recent_analyses, get_stats, init_db
+from src.fetcher import fetch_by_address
+from src.storage import (
+    get_closed_positions,
+    get_open_positions,
+    get_recent_analyses,
+    get_stats,
+    get_today_realized_loss,
+    init_db,
+)
 
 
 # ============ CONFIG ============
@@ -117,7 +125,12 @@ display_df = df[[
     "liquidity_usd", "rule_score", "ai_score", "final_score", "action"
 ]].copy()
 
-display_df["timestamp"] = pd.to_datetime(display_df["timestamp"]).dt.strftime("%H:%M:%S")
+local_tz = datetime.now().astimezone().tzinfo
+display_df["timestamp"] = (
+    pd.to_datetime(display_df["timestamp"], utc=True)
+    .dt.tz_convert(local_tz)
+    .dt.strftime("%H:%M:%S")
+)
 display_df["price_usd"] = display_df["price_usd"].apply(lambda x: f"${x:.8f}")
 display_df["market_cap"] = display_df["market_cap"].apply(lambda x: f"${x:,.0f}")
 display_df["liquidity_usd"] = display_df["liquidity_usd"].apply(lambda x: f"${x:,.0f}")
@@ -133,6 +146,72 @@ st.dataframe(
     hide_index=True,
     height=400,
 )
+
+st.divider()
+
+
+# ============ RIESGO / POSICIONES ============
+st.subheader("⚖️ Riesgo / Posiciones")
+
+open_positions = get_open_positions()
+closed = get_closed_positions(limit=100)
+today_loss = get_today_realized_loss()
+realized_total = sum(p.get("pnl_sol") or 0.0 for p in closed)
+
+r1, r2, r3, r4 = st.columns(4)
+with r1:
+    st.metric("🟢 Posiciones abiertas", len(open_positions), delta="máx 3")
+with r2:
+    st.metric("📉 Pérdida diaria realizada", f"{today_loss:.4f} SOL", delta="límite 0.5")
+with r3:
+    st.metric("📊 P&L realizado (histórico)", f"{realized_total:.4f} SOL")
+with r4:
+    st.metric("🔒 SL/Trailing activos", sum(1 for p in open_positions if p.get("trailing_active")))
+
+if not open_positions and not closed:
+    st.info("📭 Sin posiciones todavía. El modo DRY_RUN no abre posiciones; se llenará al operar en real.")
+else:
+    if open_positions:
+        st.markdown("**Posiciones abiertas**")
+        risk_rows = []
+        for p in open_positions:
+            live_price = None
+            try:
+                t = fetch_by_address(p["token_address"])
+                live_price = (t or {}).get("price_usd")
+            except Exception:
+                live_price = None
+            entry = p.get("entry_price") or 0.0
+            amount = p.get("amount_sol") or 0.0
+            if live_price and entry:
+                pnl_pct = (live_price / entry - 1) * 100
+                pnl_sol = pnl_pct / 100 * amount
+            else:
+                pnl_pct = pnl_sol = None
+            risk_rows.append({
+                "Símbolo": p.get("symbol") or "?",
+                "Entrada": f"${entry:.10f}",
+                "Actual": f"${live_price:.10f}" if live_price else "n/d",
+                "TP": f"${(p.get('tp_price') or 0):.10f}",
+                "SL": f"${(p.get('sl_price') or 0):.10f}",
+                "Trailing": "✅" if p.get("trailing_active") else "—",
+                "P&L %": f"{pnl_pct:+.1f}%" if pnl_pct is not None else "n/d",
+                "P&L SOL": f"{pnl_sol:+.4f}" if pnl_sol is not None else "n/d",
+                "SOL usados": f"{amount:.3f} SOL",
+            })
+        st.dataframe(pd.DataFrame(risk_rows), use_container_width=True, hide_index=True)
+
+    if closed:
+        st.markdown("**Historial de posiciones cerradas**")
+        hist = pd.DataFrame([{
+            "Símbolo": p.get("symbol") or "?",
+            "Entrada": f"${(p.get('entry_price') or 0):.10f}",
+            "Salida": f"${(p.get('exit_price') or 0):.10f}",
+            "P&L SOL": f"{(p.get('pnl_sol') or 0):+.4f}",
+            "ABIERTA": (p.get("opened_at") or "")[0:10],
+            "CERRADA": (p.get("closed_at") or "")[0:10],
+        } for p in closed])
+        st.dataframe(hist, use_container_width=True, hide_index=True)
 
 st.divider()
 
