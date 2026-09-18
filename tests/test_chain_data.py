@@ -94,7 +94,7 @@ def test_get_creator_age_days_empty():
     """Sin firmas → 0 días."""
     with patch("src.chain_data._rpc_call", return_value=[]):
         age = get_creator_age_days("WALLET", "key")
-    assert age == 0
+    assert age is None
 
 
 def test_enrich_token_adds_fields():
@@ -117,3 +117,18 @@ def test_enrich_token_adds_fields():
     assert result["creator_age_days"] == 30
     assert "age_minutes" in result
     assert "global_fees_sol" in result
+
+def test_enrich_token_preserves_unknown_security_data():
+    token = {"token_address": "MINT"}
+    with patch("src.chain_data.get_mint_info", return_value={
+        "mint_authority_disabled": None,
+        "freeze_authority_disabled": None,
+        "supply": None,
+        "decimals": None,
+    }), patch("src.chain_data.get_top_holders_pct", return_value=None):
+        result = enrich_token(token, "key")
+
+    assert result["has_bundles"] is None
+    assert result["dev_has_sold"] is None
+    assert result["global_fees_sol"] is None
+    assert result["top_10_holders_pct"] is None
