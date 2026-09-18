@@ -357,7 +357,7 @@ def analyze_security(token_address: str, api_key: str) -> dict[str, Any]:
             api_key,
             SECURITY_TOKEN_DEPTH,
         )
-    except Exception as e:  # noqa: BLE001 - frontera: nunca detener el ciclo
+    except Exception as e:  # BLE001 ignorado (ruff.toml): frontera, no cortar el ciclo
         logger.warning(f"Análisis de seguridad falló para {token_address}: {e}")
         return {"dev_address": None, "has_bundles": None, "dev_has_sold": None}
 

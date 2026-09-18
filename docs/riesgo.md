@@ -1,135 +1,128 @@
 # Gestión de Riesgo
 
-## Parámetros Principales
+El riesgo se gestiona en dos capas:
+
+1. **Al entrar** (`process_token`): límites máximos de posiciones y de pérdida
+   diaria antes de comprar.
+2. **Mientras se mantiene** (`monitor_positions`): TP, SL y trailing stop que
+   se evalúan **al inicio de cada ciclo** (c/15 s), antes de buscar tokens nuevos.
+
+## Parámetros principales
 
 | Parámetro | Valor | Descripción |
-|-----------|-------|-------------|
-| Take Profit (TP) | 20% | Vender al alcanzar +20% |
-| Stop Loss (SL) | 10% | Vender al caer -10% |
-| Trailing Stop | Activado | Ajusta SL dinámicamente |
-| Límite diario pérdida | 0.5 SOL | Detiene operaciones si se alcanza |
-| Máximo posiciones | 3 | No abre más si ya hay 3 abiertas |
+|---|---|---|
+| Take Profit (TP) | **+20 %** | Vende la posición completa al alcanzar la ganancia |
+| Stop Loss (SL) | **−10 %** | Vende la posición completa al alcanzar la pérdida |
+| Trailing stop | activa al **+5 %**, distancia **10 %** | Sube el SL conforme el precio hace máximos |
+| Límite de pérdida diaria | **0.5 SOL** | Bloquea compras nuevas (no detiene el monitoreo) |
+| Máximo posiciones abiertas | **3** | Ignora señales nuevas si hay 3 abiertas |
+| Price impact | **máx 5 %** | Aborta la compra si el impacto excede el límite |
+| Slippage | 1 % (100 bps) | Parámetro del quote de Jupiter |
+| Modo por defecto | `DRY_RUN` | Simula swaps; no envía transacciones |
 
-## Take Profit (TP)
+> Todos los swaps son **a mercado** vía Jupiter: no hay órdenes límite para
+> memecoins. Las ventas cierran la posición completa (venta parcial en roadmap).
 
-- **Objetivo:** Asegurar ganancias al +20%
-- **Ejecución:** Venta a mercado cuando el precio alcanza el umbral
-- **Venta escalonada:** Opcional, vender 50% al +20% y dejar el resto correr
-- **Caso de prueba:** Precio entra a +20.1% → ejecutar venta
+## Flujo de evaluación de riesgo
 
-## Stop Loss (SL)
+```mermaid
+flowchart TD
+    A[Señal de compra<br/>score > 70] --> B{¿Posiciones abiertas < 3?<br/>can_open_position}
+    B -- NO --> C[✖ Ignorar señal<br/>se sigue monitoreando lo abierto]
+    B -- SÍ --> D{¿Pérdida diaria < 0.5 SOL?<br/>check_daily_limit}
+    D -- NO --> E[🚫 Bloquear compras<br/>el bot sigue monitoreando posiciones]
+    D -- SÍ --> F{¿Price impact ≤ 5 %?}
+    F -- NO --> G[✖ Abortar swap]
+    F -- SÍ --> H[Comprar tamaño según modo]
+    H --> I[Abrir Position<br/>TP = 1.2× · SL = 0.9×]
+    I --> J[monitor_positions<br/>cada ciclo actualiza trailing y vende en TP/SL]
+```
 
-- **Objetivo:** Limitar pérdidas al -10%
-- **Ejecución:** Venta a mercado cuando el precio cae al umbral
-- **Prioridad:** SL siempre tiene prioridad sobre TP si ambos se disparan
-- **Caso de prueba:** Precio cae a -10.1% → ejecutar venta
+La venta en TP/SL también pasa por el límite de price impact: si un swap de
+venta la excediera, se aborta y se reintenta en el siguiente ciclo.
 
-## Trailing Stop
+## Take Profit (TP) y Stop Loss (SL)
 
-- **Funcionamiento:** El SL se mueve hacia arriba conforme el precio sube
-- **Activación:** Cuando el precio sube +5% desde la entrada
-- **Distancia:** 10% por debajo del precio máximo alcanzado
-- **Ejemplo:**
-  - Entrada: $100
-  - Precio sube a $120 → SL sube a $108 (10% por debajo)
-  - Precio sube a $150 → SL sube a $135
-  - Precio cae a $135 → se ejecuta venta
-- **Caso de prueba:** Precio máximo $150, cae a $134.9 → ejecutar venta
+- **TP (+20 %)**: el precio alcanza `entry × 1.20` → se vende la posición
+  completa y se cierra como `closed`.
+- **SL (−10 %)**: el precio cae a `entry × 0.90` → se vende la posición
+  completa.
+- **Prioridad**: si ambos niveles se cruzan en el mismo tick (gap), se evalúa
+  primero el SL (la pérdida controlada manda).
 
-## Límite Diario de Pérdida
+Código: `risk.py` (`Position.entry_price`, `tp_price`, `sl_price`) y
+`main.monitor_positions`.
 
-- **Umbral:** 0.5 SOL de pérdida acumulada en 24h
-- **Reset:** A medianoche UTC
-- **Acción al alcanzar:** Detiene todas las operaciones hasta el próximo día
-- **Persistencia:** Se guarda en `logs/daily_loss.json`
-- **Caso de prueba:** Pérdida acumulada = 0.51 SOL → detener bot
+## Trailing stop
 
-## Máximo de Posiciones
+- **Activación**: cuando el precio sube **+5 %** desde la entrada.
+- **Distancia**: **10 %** por debajo del **precio máximo alcanzado**
+  (`max_price_reached`), que se actualiza en cada monitoreo.
+- Una vez activo, el SL ya no se mueve hacia abajo.
 
-- **Límite:** 3 posiciones abiertas simultáneamente
-- **Acción al alcanzar:** No abre nuevas hasta cerrar una
-- **Prioridad:** Se cierra la posición con peor rendimiento si hay empate
-- **Caso de prueba:** 3 posiciones abiertas + nueva señal → ignorar señal
+### Ejemplo numérico (entrada 100)
 
-## Modos de Operación
+| Evento | Precio | SL/trailing | Resultado |
+|---|---|---|---|
+| Entrada | 100 | SL fijo 90 | — |
+| Precio sube a 120 | +20 % | TP 120 alcanzado | **venta, TP** |
+| Precio sube a 105 | +5 % | trailing activo: SL → 94.5 | — |
+| Precio sube a 150 | máx. 150 | trailing: SL → 135 | — |
+| Precio cae a 135 | −10 % del máx | trailing: SL 135 alcanzado | **venta con ganancia** |
 
-### Conservador
-- Compra base: 0.05 SOL
-- Máximo exposición: 0.15 SOL (3 × 0.05)
-- Perfil: Bajo riesgo, pocas operaciones
+## Límite de pérdida diaria
 
-### Equilibrado
-- Compra base: 0.03 SOL
-- Máximo exposición: 0.09 SOL
-- Perfil: Balance entre riesgo y oportunidad
+- **Umbral**: pérdida realizada acumulada ≥ **0.5 SOL** en el día.
+- **Cálculo**: `storage.get_today_realized_loss` suma el P&L de las posiciones
+  cerradas hoy (el día se recorta a partir de `datetime.max` para la marca `date`).
+- **Efecto al alcanzarlo**: se bloquean **compras nuevas** (`check_daily_limit`),
+  pero `monitor_positions` **sigue activo**: se sigue gestionando TP/SL/trailing
+  de las posiciones ya abiertas y se pueden cerrar.
+- **Reset**: el límite se recalcula solo; al cambiar la fecha vuelve a 0 (no hay
+  un job aparte de reset).
 
-### Agresivo
-- Compra base: 0.01 SOL
-- Máximo exposición: 0.03 SOL
-- Perfil: Más operaciones, menor tamaño
+## Máximo de posiciones
 
-## Flujo de Evaluación de Riesgo
-Detectar token nuevo
+- **Límite**: 3 posiciones abiertas simultáneamente (`can_open_position`).
+- **Acción**: se ignora la señal nueva; **no** se cierra ninguna posición para
+  hacer hueco (no hay "cierre de la peor posición").
+- **Caso de prueba**: 3 abiertas + nueva señal → se ignora la señal.
 
-Calcular score
+## Modos de operación
 
-¿Score > 70?
+| Modo | Compra base | Máx. exposición | Perfil |
+|---|---|---|---|
+| Conservador | 0.05 SOL | 0.15 SOL (3 × 0.05) | Bajo riesgo, pocas operaciones |
+| Equilibrado | 0.03 SOL | 0.09 SOL (3 × 0.03) | Balance riesgo/oportunidad |
+| Agresivo | 0.01 SOL | 0.03 SOL (3 × 0.01) | Más operaciones, menor tamaño |
 
-NO → ignorar
+## Persistencia
 
-SÍ → continuar
+Las posiciones viven en **SQLite** (`logs/bot.db`, tabla `positions`), no en
+archivos JSON. Columnas relevantes: símbolo, dirección, modo, entry price,
+TP/SL, `trailing_active`, `max_price_reached`, `status` (open/closed), P&L y
+fechas. `storage.py` expone: `save_position`, `get_open_positions`,
+`close_position`, `update_position_state`, `get_today_realized_loss`,
+`get_closed_positions`.
 
-¿Posiciones abiertas < 3?
+## Resiliencia ante fallos de precios
 
-NO → ignorar
-
-SÍ → continuar
-
-¿Pérdida diaria < 0.5 SOL?
-
-NO → detener bot
-
-SÍ → continuar
-
-Ejecutar compra con tamaño según modo
-
-Registrar posición y monitorear TP/SL
-
-text
+- El precio de monitoreo viene de **DexScreener** (`fetch_by_address`). Si una
+  consulta falla, se reintenta y, si no hay precio, **se salta el ciclo sin
+  vender a ciegas**: la posición queda intacta y se reintenta en el próximo ciclo.
+- Un swap real que falle (red, Jupiter) se reintenta en el siguiente ciclo; la
+  posición no se marca como cerrada hasta que la venta termina.
 
 ## Casos de Prueba (QA)
 
 | ID | Caso | Escenario | Resultado esperado |
 |----|------|-----------|-------------------|
-| R-01 | TP alcanzado | Precio +20% | Vender, cerrar posición |
-| R-02 | SL alcanzado | Precio -10% | Vender, cerrar posición |
-| R-03 | Trailing activo | Precio +5%, luego cae 10% | Vender con ganancia |
-| R-04 | Límite diario | Pérdida acumulada 0.5 SOL | Detener bot 24h |
+| R-01 | TP alcanzado | Precio +20 % | Vender, cerrar posición |
+| R-02 | SL alcanzado | Precio −10 % | Vender, cerrar posición |
+| R-03 | Trailing activo | +5 % y luego −10 % desde máx. | Vender con ganancia |
+| R-04 | Límite diario | Pérdida acumulada 0.5 SOL | Bloquear compras (sigue monitoreando) |
 | R-05 | Máximo posiciones | 3 abiertas + señal | Ignorar señal |
-| R-06 | Modo conservador | Señal con score 75 | Compra 0.05 SOL |
-| R-07 | Reset diario | Medianoche UTC | Pérdida diaria = 0 |
-
-## Registro de Posiciones
-
-Cada posición abierta se registra en `logs/positions.json`:
-
-```json
-{
-  "id": "pos-001",
-  "token": "TOKEN_ADDRESS",
-  "entry_price": 0.000123,
-  "amount_sol": 0.05,
-  "tp_price": 0.0001476,
-  "sl_price": 0.0001107,
-  "trailing_active": false,
-  "max_price_reached": 0.000123,
-  "opened_at": "2026-09-17T14:30:00Z"
-}
-Advertencias
-El trailing stop solo se activa después de +5% de ganancia
-
-El límite diario se resetea a medianoche UTC, no hora local
-
-Si la API de precios falla, el bot pausa las operaciones (no vende a ciegas)
-
-Las ventas siempre son a mercado (no hay órdenes límite en memecoins)
+| R-06 | Modo equilibrado | Señal con score > 70 | Compra de 0.03 SOL |
+| R-07 | Reset diario | Cambia la fecha | Pérdida diaria vuelve a 0 |
+| R-08 | Precio API cae | `fetch_by_address` falla | No vender a ciegas; reintentar |
+| R-09 | Price impact | impact > 5 % en venta | Abortar swap, reintentar ciclo siguiente |

@@ -2,7 +2,7 @@
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -120,7 +120,7 @@ def save_analysis(
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
                 token.get("token_address", ""),
                 token.get("symbol", "?"),
                 token.get("price_usd", 0.0),
@@ -216,7 +216,7 @@ def mark_seen(token_address: str, db_path: str = DEFAULT_DB_PATH) -> None:
         conn.execute(
             "INSERT OR IGNORE INTO seen_tokens (token_address, seen_at) "
             "VALUES (?, ?)",
-            (token_address, datetime.now(timezone.utc).isoformat()),
+            (token_address, datetime.now(UTC).isoformat()),
         )
         conn.commit()
     finally:
@@ -239,7 +239,7 @@ def save_position(
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open')
             """,
             (
-                position.get("opened_at") or datetime.now(timezone.utc).isoformat(),
+                position.get("opened_at") or datetime.now(UTC).isoformat(),
                 position["token_address"],
                 position.get("symbol", "?"),
                 entry,
@@ -332,7 +332,7 @@ def close_position(
             WHERE token_address = ? AND status = 'open'
             """,
             (
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
                 exit_price,
                 pnl_sol,
                 token_address,

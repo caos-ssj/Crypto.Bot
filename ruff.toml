@@ -1,0 +1,16 @@
+# Configuración de ruff para Crypto Bot.
+#
+# BLE001/S110 se ignoran SOLO en las fronteras de API (fetcher, executor,
+# main, ai, chain_data): los `try/except Exception` ahí protegen el ciclo
+# completo del bot ante fallos independientes de las APIs externas
+# (DexScreener, Helius, LM Studio, Jupiter). El fallo de una API externa nunca
+# debe detener el bot. Fuera de estos archivos, BLE001 sigue activo.
+# Referencia: sección 6 de CLAUDE.md.
+target-version = "py311"
+
+[lint.per-file-ignores]
+"src/fetcher.py" = ["BLE001"]
+"src/executor.py" = ["BLE001"]
+"src/main.py" = ["BLE001", "S110"]
+"src/ai.py" = ["BLE001"]
+"src/chain_data.py" = ["BLE001"]

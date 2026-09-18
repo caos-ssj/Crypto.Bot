@@ -400,7 +400,7 @@ def _open_position_from_swap(
         try:
             fresh = fetch_by_address(token["token_address"])
             price = fresh.get("price_usd") if fresh else None
-        except Exception as e:  # noqa: BLE001 - frontera de red (DexScreener)
+        except Exception as e:  # BLE001 ignorado (ruff.toml): frontera de red
             logger.warning(f"No se pudo obtener precio de {symbol}: {e}")
             price = None
     if not price:
@@ -497,7 +497,7 @@ def monitor_positions(config: dict[str, Any]) -> None:
                 console.print(
                     f"[green]↩ {symbol} cerrado: pnl {pnl:+.4f} SOL (${price:.8f})[/]"
                 )
-        except Exception as e:  # noqa: BLE001 - el error no debe cortar el ciclo
+        except Exception as e:  # BLE001 ignorado (ruff.toml): no cortar el ciclo
             console.print(f"[red]Error monitoreando {symbol}: {e}[/]")
 
 
@@ -601,7 +601,7 @@ def run_automatic_mode(config: dict[str, Any], mode_settings: dict[str, Any]) ->
 
         try:
             monitor_positions(config)
-        except Exception as e:  # noqa: BLE001 - frontera de red, no corta el ciclo
+        except Exception as e:  # BLE001 ignorado (ruff.toml): frontera de red
             console.print(f"[red]Error en monitoreo: {e}[/]")
 
         try:
