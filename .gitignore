@@ -46,6 +46,10 @@ config/config.local.yaml
 *.db
 *.sqlite
 
+# Tooling de agentes
+.agents/
+.opencode/
+
 # Backups
 *.bak
 *.backup

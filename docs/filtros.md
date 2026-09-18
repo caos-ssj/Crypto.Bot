@@ -8,21 +8,32 @@ Cada filtro asigna puntos según su peso. El score total determina la decisión:
 - **OBSERVAR:** Score 50-70
 - **EVITAR:** Score < 50
 
+### Política de datos no verificados
+
+Un dato on-chain que **no puede verificarse** (fallo de RPC, API sin datos, etc.)
+se marca como `None` y el filtro otorga **0 pts**. Nunca se asume un valor
+"de relleno" que infle el score.
+
+Cada filtro reporta un `status`:
+- `ok`: el filtro pasó con datos verificados.
+- `fail`: el filtro falló con datos verificados (el token no cumple).
+- `missing`: no había datos para evaluarlo (0 pts, conservador).
+
 ## Tabla de Filtros
 
 | # | Filtro | Condición | Peso | Fuente de datos |
 |---|--------|-----------|------|-----------------|
 | 1 | Market Cap | $20K - $800K | 20 pts | DexScreener |
-| 2 | Global Fees | > 0.15 SOL | 20 pts | Solana RPC |
+| 2 | Global Fees | > 0.15 SOL | 20 pts | Sin fuente fiable hoy → no verificado |
 | 3 | Edad del token | < 1440 min | 15 pts | DexScreener |
-| 4 | Seguridad | Sin bundles, dev no ha vendido | 25 pts | Análisis on-chain |
+| 4 | Seguridad | Sin bundles, dev no ha vendido | 25 pts | Análisis on-chain (Helius) |
 | 5 | Liquidez/MC | > 3% | 5 pts | DexScreener |
 | 6 | Top-10 Holders | < 50% del supply | 5 pts | Solana RPC |
 | 7 | Volumen 5min | > $2K | 5 pts | DexScreener |
-| 8 | Edad del creador | > 3 días | 5 pts | Solana RPC |
+| 8 | Edad del creador | > 3 días | 5 pts | Solana RPC (wallet del dev) |
 | 9 | Autoridades | Mint y Freeze deshabilitadas | 5 pts | Solana RPC |
-| 10 | Bundles | No detectados | 5 pts | Análisis de tx |
-| 11 | Dev Sell | Dev no ha vendido | 5 pts | Análisis de tx |
+| 10 | Bundles | No detectados | 5 pts | Análisis on-chain (Helius) |
+| 11 | Dev Sell | Dev no ha vendido | 5 pts | Análisis on-chain (Helius) |
 
 **Score máximo:** 115 pts (se normaliza a 100)
 
@@ -38,6 +49,7 @@ Cada filtro asigna puntos según su peso. El score total determina la decisión:
 - **Qué mide:** Comisiones acumuladas en SOL
 - **Umbral:** > 0.15 SOL
 - **Interpretación:** Indica actividad real de trading
+- **Estado:** Sin fuente fiable disponible por ahora → siempre `missing` (0 pts)
 - **Caso de prueba:** ¿Qué pasa si fees = 0.149 SOL? → 0 pts
 
 ### 3. Edad del Token (15 pts)
@@ -50,6 +62,8 @@ Cada filtro asigna puntos según su peso. El score total determina la decisión:
 - **Qué mide:** Indicadores de seguridad on-chain
 - **Criterios:** Sin bundles, dev no ha vendido
 - **Peso:** El más alto del sistema
+- **Detección:** Análisis de transacciones de la mint vía Helius (ver filtros 10 y 11)
+- **Fallo de RPC:** `None` → 0 pts (no asumir seguridad)
 - **Caso de prueba:** Si dev vendió aunque sea 1% → 0 pts
 
 ### 5. Liquidez/MC (5 pts)
@@ -73,6 +87,7 @@ Cada filtro asigna puntos según su peso. El score total determina la decisión:
 ### 8. Edad del Creador (5 pts)
 - **Qué mide:** Tiempo de actividad de la wallet del dev
 - **Umbral:** > 3 días
+- **Wallet del dev:** Deriva del fee payer de la tx más antigua de la mint (pump.fun)
 - **Riesgo si falla:** Wallets nuevas suelen ser scams
 - **Caso de prueba:** ¿Qué pasa si edad = 2.9 días? → 0 pts
 
@@ -85,12 +100,16 @@ Cada filtro asigna puntos según su peso. El score total determina la decisión:
 ### 10. Bundles (5 pts)
 - **Qué mide:** Si el lanzamiento se hizo en bundles (múltiples compras en la misma tx)
 - **Umbral:** Sin bundles detectados
+- **Detección:** Se escanean las ~10 transacciones recientes de la mint; si una sola
+  firma incluye >1 wallet distinta comprando el token por primera vez → bundle.
+  Resultado en caché por mint para no repetir llamadas RPC.
 - **Riesgo si falla:** Bundles suelen ser snipers que dump inmediato
 - **Caso de prueba:** Si se detecta 1 bundle → 0 pts
 
 ### 11. Dev Sell (5 pts)
 - **Qué mide:** Si el dev ha vendido tokens después del lanzamiento
 - **Umbral:** 0 ventas del dev
+- **Detección:** Saldo del dev decreciente (pre/post balance) en las txs escaneadas
 - **Riesgo si falla:** Dev vendiendo = señal de rug pull
 - **Caso de prueba:** Si dev vendió 1 token → 0 pts
 
@@ -119,6 +138,10 @@ Los umbrales cambian según el modo:
 
 ## Notas de Implementación
 
-- Los datos faltantes se tratan como 0 pts (conservador)
-- Los umbrales son inclusivos (>= y <=)
-- El score se normaliza de 115 → 100 para consistencia
+- Los datos no verificados se representan con `None` y puntúan **0 pts** (conservador).
+  Nunca se inventa un valor que haga pasar el filtro.
+- Cada detalle de filtro incluye `status: ok | fail | missing` para la UI.
+- Los umbrales son inclusivos (>= y <=).
+- El score se normaliza de 115 → 100 para consistencia.
+- La detección de bundles/dev-sell se ejecuta una sola vez por token gracias a
+  la caché en memoria y a la persistencia de tokens ya procesados (`seen_tokens`).

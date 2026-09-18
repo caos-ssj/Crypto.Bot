@@ -71,19 +71,25 @@ Bot autónomo de trading de memecoins en Solana. Detecta tokens nuevos, los anal
 
 ## Flujo de Datos
 
-1. Detector consulta DexScreener cada 15s
-2. Filtra tokens nuevos (no procesados previamente)
-3. Extrae datos on-chain vía Helius
-4. Analyzer aplica 11 filtros y calcula score
+1. Fetcher consulta DexScreener cada 15s
+2. Filtra tokens nuevos usando el histórico persistido (`seen_tokens` en SQLite)
+3. Extrae datos on-chain vía Helius: mint/freeze authority, top holders, wallet
+   del dev (fee payer de la tx de creación), bundles y ventas del dev
+   (escanear transacciones de la mint). Todo con caché y fallo conservador (`None`)
+4. Analyzer aplica 11 filtros y calcula score (datos no verificados → 0 pts)
 5. IA local evalúa contexto y ajusta score
-6. Decisión: COMPRA / OBSERVAR / EVITAR
+6. Decisión unificada (`analyzer.decide`): COMPRA / OBSERVAR / EVITAR
 7. Si COMPRA → Executor construye y envía swap vía Jupiter
 8. Risk registra posición y monitorea TP/SL
+9. Cada token procesado se marca como visto en `seen_tokens`
 
 ## Persistencia
 
-- Estado de posiciones: archivo JSON (`logs/positions.json`)
-- Historial de operaciones: PostgreSQL (pendiente)
+- Análisis e histórico de tokens procesados: SQLite (`logs/bot.db`)
+  - Tabla `analyses`: reportes por token.
+  - Tabla `seen_tokens`: evita reprocesar tokens entre reinicios.
+  - Tabla `positions`: posiciones abiertas/cerradas (pendiente de conexión con Risk).
+- Estado de posiciones: JSON (`logs/positions.json`) — pendiente de migrar a SQLite
 - Logs: `logs/bot.log` (rotación diaria)
 ## Resiliencia ante Fallos Externos
 

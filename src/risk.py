@@ -2,19 +2,19 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
+
 from loguru import logger
 
-
-TAKE_PROFIT_PCT = 0.20   # +20%
-STOP_LOSS_PCT = 0.10     # -10%
+TAKE_PROFIT_PCT = 0.20  # +20%
+STOP_LOSS_PCT = 0.10  # -10%
 TRAILING_ACTIVATION = 0.05  # activa al +5%
-TRAILING_DISTANCE = 0.10    # 10% por debajo del máximo
+TRAILING_DISTANCE = 0.10  # 10% por debajo del máximo
 
 
 @dataclass
 class Position:
     """Representa una posición abierta."""
+
     token_address: str
     symbol: str
     entry_price: float
@@ -34,10 +34,10 @@ class Position:
 
 def calculate_tp_sl(entry_price: float) -> tuple[float, float]:
     """Calcula precios de TP y SL a partir del precio de entrada.
-    
+
     Args:
         entry_price: Precio de entrada.
-    
+
     Returns:
         Tupla (tp_price, sl_price).
     """
@@ -58,9 +58,9 @@ def check_stop_loss(position: Position, current_price: float) -> bool:
 
 def update_trailing_stop(position: Position, current_price: float) -> None:
     """Actualiza el trailing stop si el precio sube.
-    
+
     Activa el trailing al +5% y lo mueve al 90% del máximo alcanzado.
-    
+
     Args:
         position: Posición a actualizar (modificada in-place).
         current_price: Precio actual del token.
@@ -71,10 +71,9 @@ def update_trailing_stop(position: Position, current_price: float) -> None:
         if gain_pct >= TRAILING_ACTIVATION:
             position.trailing_active = True
             logger.info(
-                f"Trailing activado para {position.symbol} "
-                f"(+{gain_pct * 100:.1f}%)"
+                f"Trailing activado para {position.symbol} " f"(+{gain_pct * 100:.1f}%)"
             )
-    
+
     # Solo actualizar si el precio sube
     if current_price > position.max_price_reached:
         position.max_price_reached = current_price
@@ -82,9 +81,7 @@ def update_trailing_stop(position: Position, current_price: float) -> None:
             new_sl = round(current_price * (1 - TRAILING_DISTANCE), 8)
             if new_sl > position.sl_price:
                 position.sl_price = new_sl
-                logger.info(
-                    f"SL subido a {new_sl} para {position.symbol}"
-                )
+                logger.info(f"SL subido a {new_sl} para {position.symbol}")
 
 
 def can_open_position(
@@ -97,7 +94,7 @@ def can_open_position(
 
 def check_daily_limit(current_loss_sol: float, limit_sol: float = 0.5) -> bool:
     """Verifica si aún se puede operar según el límite diario.
-    
+
     Returns:
         True si aún se puede operar, False si se alcanzó el límite.
     """

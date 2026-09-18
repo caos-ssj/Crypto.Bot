@@ -2,7 +2,6 @@
 
 from typing import Any
 
-
 MODES: dict[str, dict[str, Any]] = {
     "conservador": {
         "mc_min": 50000,
@@ -30,19 +29,18 @@ MODES: dict[str, dict[str, Any]] = {
 
 def get_mode_settings(mode: str) -> dict[str, Any]:
     """Retorna la configuración para un modo específico.
-    
+
     Args:
         mode: Nombre del modo (conservador, equilibrado, agresivo).
-    
+
     Returns:
         Diccionario con los parámetros del modo.
-    
+
     Raises:
         ValueError: Si el modo no existe.
     """
     if mode not in MODES:
         raise ValueError(
-            f"Modo inválido: {mode}. "
-            f"Opciones válidas: {list(MODES.keys())}"
+            f"Modo inválido: {mode}. " f"Opciones válidas: {list(MODES.keys())}"
         )
     return MODES[mode]
