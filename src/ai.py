@@ -105,7 +105,7 @@ def get_ai_score(
         if not content:
             logger.warning("Respuesta vacía de IA (posible thinking mode)")
             return {"score": 0, "reason": "Respuesta vacía", "fallback": True}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"IA no disponible: {e}. Usando fallback.")
         return {"score": 0, "reason": "IA no disponible", "fallback": True}
     
