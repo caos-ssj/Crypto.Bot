@@ -1,14 +1,18 @@
 """Tests para storage (SQLite)."""
 
-import tempfile
 from pathlib import Path
+
 import pytest
 
 from src.storage import (
-    init_db,
-    save_analysis,
+    get_detection,
     get_recent_analyses,
-    get_stats,\n    register_detection,\n    mark_detection_processed,\n    get_detection,\n    save_execution,
+    get_stats,
+    init_db,
+    mark_detection_processed,
+    register_detection,
+    save_analysis,
+    save_execution,
 )
 
 
