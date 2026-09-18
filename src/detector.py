@@ -1,7 +1,10 @@
 """Módulo de detección de tokens nuevos en Solana."""
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
+
 from loguru import logger
+
 from src.utils import safe_float
 
 
