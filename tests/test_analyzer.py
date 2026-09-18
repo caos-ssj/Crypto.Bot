@@ -155,3 +155,15 @@ def test_decide_observar():
 
 def test_decide_evitar():
     assert decide(30) == "EVITAR"
+
+def test_security_unknown_does_not_get_points():
+    """Datos de seguridad desconocidos no deben convertirse en una señal positiva."""
+    from src.analyzer import check_security
+    points, _ = check_security({"has_bundles": None, "dev_has_sold": None})
+    assert points == 0
+
+
+def test_security_requires_explicit_safe_values():
+    from src.analyzer import check_security
+    points, _ = check_security({"has_bundles": False, "dev_has_sold": False})
+    assert points == 25
