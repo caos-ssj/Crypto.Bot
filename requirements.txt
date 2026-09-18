@@ -21,7 +21,7 @@ numpy>=1.26.0
 openai>=1.50.0
 
 # Utilidades
-loguru>=0.7.0
+loguru>=0.7.3
 tenacity>=9.0.0
 apscheduler>=3.10.0
 
