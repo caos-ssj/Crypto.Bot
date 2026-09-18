@@ -18,7 +18,7 @@ pandas>=2.2.0
 numpy>=1.26.0
 
 # IA local (LM Studio es OpenAI-compatible)
-openai>=1.50.0
+openai>=3.14.0
 
 # Utilidades
 loguru>=0.7.0
