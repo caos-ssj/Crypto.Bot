@@ -1,6 +1,7 @@
 """Analizador de tokens: 11 filtros ponderados + score + decisión."""
 
 from typing import Any
+
 from loguru import logger
 
 
