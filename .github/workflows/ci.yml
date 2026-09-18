@@ -29,10 +29,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Lint con ruff
-        run: ruff check src/ tests/ || true
+        run: ruff check src/ tests/
 
       - name: Verificar formato
-        run: black --check src/ tests/ || true
+        run: black --check src/ tests/
 
       - name: Correr tests
-        run: pytest tests/ -v || true
+        run: pytest tests/ -v --cov=src --cov-report=term-missing --cov-fail-under=70
