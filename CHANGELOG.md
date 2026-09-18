@@ -1,5 +1,26 @@
 # Changelog
 
+## [v2.2.1] Preparación para lanzamiento público (GitHub) — 2026-09-18
+
+### Community-ready
+- README bilingüe: switcher ES/EN, `README.EN.md` (traducción completa).
+- `CONTRIBUTING.md`, `SECURITY.md` y `CODE_OF_CONDUCT.md`.
+- Templates de GitHub: Issue Forms (bug/feature), PR template, `dependabot.yml`.
+- Social preview `.github/social-preview.png` (1280×640) para el About/OG del repo.
+
+### Limpieza
+- Eliminados del repo los artefactos personales (`bug-001…008`, `BOT_KNOWLEDGE.md`)
+  y `config/config.yaml` (vacío, sin uso). Copia de seguridad local conservada.
+
+### Docs
+- `docs/PUBLIC-LAUNCH-CHECKLIST.md`: pasos manuales en github.com (description,
+  topics, branch protection, releases, Discussions) antes de hacer público.
+
+### Tests / lint
+- Sin cambios de código: 130 tests, 67 %, ruff y black limpios.
+
+---
+
 ## [v2.2] Hardening de CI, documentación profesional y revisión crítica de QA — 2026-09-18
 
 ### CI endurecido (ahora bloqueante)
