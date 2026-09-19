@@ -4,6 +4,7 @@
 **Módulo:** Testing — `src/fetcher.py`, `src/main.py`, `src/executor.py`
 **Entorno:** v2.1, cobertura medida por `pytest --cov=src`
 **Fecha:** 2026-09-18
+**Estado:** ✅ Resuelto — ampliación de cobertura ejecutada el 2026-09-18 (ver sección al final)
 
 ## Descripción
 
@@ -88,3 +89,27 @@ política de testeo debe exigir cobertura **alta en los módulos que firman y
 envían transacciones** (confirmación, fallos, reintentos) antes que subir el
 promedio de módulos triviales. El test que no existe para un caso de pérdida
 real es un huérfano en el presupuesto de QA.
+---
+
+## ✅ Resolución (2026-09-18)
+
+Ampliación de la suite sobre los dos huecos críticos identificados:
+
+| Módulo | Antes | Después |
+|---|---|---|
+| `fetcher.py` | 20 % | **94 %** (19 tests) |
+| `main.py` | 35 % | **70 %** (36 tests) |
+| `executor.py` | 76 % | 76 % |
+| `risk.py` | 100 % | 100 % |
+| **TOTAL** | **67 %** (130 tests) | **83 %** (174 tests) |
+
+Cobertura de `--cov-fail-under=60` → gate local `make check` con mismo umbral.
+Durante la ampliación se detectó y corrigió un defecto nuevo (Bug #023: par
+malformado de DexScreener que anulaba la búsqueda completa), cubierto con tests
+de regresión.
+
+Quedan pendientes como deuda de QA, menores:
+- `main.py` (~70 %): UI rich (`show_token_report` en mayor detalle) y escenarios
+  e2e completos con scheduler (TP/SL real vía mock de Jupiter).
+- `executor.py` (76 %): paths reales de firma/envío con RPC mockeado siguen
+  siendo los menos cubiertos (recomendación 1 del informe).
