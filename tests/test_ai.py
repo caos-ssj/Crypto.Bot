@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 from src.ai import (
+    _call_lm_studio,
     build_prompt,
     get_ai_score,
     parse_ai_response,
@@ -89,3 +90,21 @@ def test_get_ai_score_invalid_response():
 
     assert result["score"] == 0
     assert result["fallback"] is True
+
+
+def test_call_lm_studio_normaliza_v1_duplicado():
+    """No duplica el sufijo /v1 del base_url (evita .../v1/v1)."""
+    with patch("src.ai.OpenAI") as mock_cls:
+        mock_cls.return_value.completions.create = MagicMock()
+        _call_lm_studio("hola", "http://localhost:1234/v1", model="qwen/qwen3-4b-2507")
+
+    assert mock_cls.call_args.kwargs["base_url"] == "http://localhost:1234/v1"
+
+
+def test_call_lm_studio_sin_v1_le_añade():
+    """Si el base_url no trae /v1, se añade una sola vez."""
+    with patch("src.ai.OpenAI") as mock_cls:
+        mock_cls.return_value.completions.create = MagicMock()
+        _call_lm_studio("hola", "http://localhost:1234", model="qwen/qwen3-4b-2507")
+
+    assert mock_cls.call_args.kwargs["base_url"] == "http://localhost:1234/v1"

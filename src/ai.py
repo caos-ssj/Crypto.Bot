@@ -80,6 +80,8 @@ def _call_lm_studio(
     model: str = DEFAULT_MODEL,
 ) -> Any:
     """Llama a LM Studio (API compatible con OpenAI)."""
+    base_url = base_url.rstrip("/")
+    base_url = base_url.removesuffix("/v1")
     client = OpenAI(base_url=f"{base_url}/v1", api_key="not-needed")
     return client.chat.completions.create(
         model=model,
