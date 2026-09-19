@@ -1,7 +1,6 @@
 # Blockchain / Solana
 solana>=0.34.0
 solders>=0.21.0
-anchorpy>=0.20.0
 web3>=7.0.0
 
 # HTTP / APIs
@@ -36,6 +35,5 @@ ruff>=0.6.0
 mypy>=1.11.0
 pre-commit>=3.8.0
 pytest-xprocess>=1.0.0
-rich>=13.7.0
 rich>=13.7.0
 streamlit>=1.40.0

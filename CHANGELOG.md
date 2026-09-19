@@ -1,5 +1,18 @@
 # Changelog
 
+## [v2.2.4] Fix de CI: pytest no arrancaba (plugin roto de anchorpy) — 2026-09-18
+
+- **`requirements.txt`**: eliminado `anchorpy>=0.20.0` (sin uso en `src/` ni `tests/`).
+  Su plugin pytest11 ejecuta `from pytest_xprocess import getrootdir`, que falla con
+  pytest-xprocess ≥1.0 (el módulo pasó a ser `xprocess.pytest_xprocess`) → **pytest
+  moría al arrancar en GitHub Actions** con output vacío (`0/2` checks en `main`).
+  El error reproducido en CI: `ModuleNotFoundError: No module named 'pytest_xprocess'`.
+- Limpieza: línea duplicada de `rich` en `requirements.txt`.
+- Verificado localmente con el mismo pipeline del CI: `ruff` limpio, `black` limpio,
+  **130 tests pasando**, cobertura **67 %** (gate 60 %).
+
+---
+
 ## [v2.2.3] Badge de versión dinámico — 2026-09-18
 
 - Badge `versión` del README (ES/EN) pasa a dinámico
