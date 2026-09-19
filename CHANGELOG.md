@@ -1,20 +1,27 @@
 # Changelog
 
-## [v2.2.5] QA hardening: cobertura 67→83 % y bug-023 (pendiente de tag tras merge del PR)
+## [v2.2.5] QA hardening: cobertura 67→83 %, bug-023 y bug-024 (pendiente de tag tras merge del PR)
 
 - **Bug #023 corregido** (`src/fetcher.py`): un par malformado de DexScreener
   (`baseToken: null`, `liquidity` no-dict) rompía **toda** la búsqueda
   (`fetch_by_symbol`/`fetch_recent_memecoins` → `[]`, `fetch_by_address` → `None`).
   `_normalize_pair` ahora valida tipos y descarta solo el par sucio; nuevo helper
   `_liquidity_usd` como `key` del `max()`. Regresión cubierta en `tests/test_fetcher.py`.
-- **Cobertura +24 puntos** (67→**83 %**): suite de **174 tests** (eran 130).
+- **Bug #024 corregido** (`src/ai.py`): la IA local caía siempre a fallback con
+  la config documentada (`LM_STUDIO_URL` con `/v1`) porque el cliente duplicaba el
+  sufijo (`/v1/v1`) → 404 de LM Studio → `choices=None` → `score 0` silencioso en
+  cada token. Se normaliza `base_url` con `removesuffix("/v1")` (admite ambas
+  convenciones); regresión en `tests/test_ai.py` (+2). Detectado **en vivo** al
+  activar Bionic/LM Studio en `:1234`.
+- **Cobertura +16 puntos** (67→**83 %**): suite de **176 tests** (eran 130).
   - `fetcher.py` 20→**94 %** (19 tests: normalización, edad, retry HTTP, búsquedas).
   - `main.py` 35→**70 %** (36 tests: wallet, enrich/IA-fallback, apertura con re-fetch,
     monitor TP/SL/venta fallida/pnl dry-run, modos manual/automático, `main()`).
 - **Nuevo `Makefile`**: `make check` = ruff + black `--check` + cobertura (gate 60 %),
   el mismo pipeline del CI en un comando.
-- **Docs:** `docs/QA-CASE-STUDY.md` (case study de portafolio), `docs/bug-reports/bug-023-*`,
-  estado "resuelto" en `bug-022`, `CLAUDE.md` y `CHANGELOG` actualizados.
+- **Docs:** `docs/QA-CASE-STUDY.md` (case study de portafolio), `docs/bug-reports/bug-023-*`
+  y `bug-024-*`, estado "resuelto" en `bug-022`, `README.md`/`README.EN.md`
+  (176 tests · 83 %), `CLAUDE.md` y `CHANGELOG` actualizados.
 
 ---
 
