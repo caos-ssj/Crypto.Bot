@@ -223,7 +223,7 @@ crypto-bot/
 │   ├── config.py        # conservative / balanced / aggressive modes
 │   └── utils.py         # retry with backoff, formatters
 ├── dashboard.py         # web dashboard (Streamlit)
-├── tests/               # 130 tests (pytest)
+├── tests/               # 176 tests (pytest)
 ├── docs/                # architecture · filters · risk · qa · bug-reports
 ├── CONTRIBUTING.md      # how to contribute
 ├── SECURITY.md          # vulnerability disclosure policy
@@ -291,8 +291,9 @@ venv/bin/ruff check src/ tests/
 venv/bin/black --check src/ tests/
 ```
 
-- **130 tests** cover rules, filters, on-chain, real swaps (mocked), risk and
-  storage. Current coverage: **67 %**.
+- **176 tests** cover rules, filters, on-chain, local AI, real swaps (mocked),
+  risk and storage. Current coverage: **83 %** (fetcher 94 %, main 70 %,
+  risk 100 %, analyzer 96 %).
 - **ruff and black are blocking in CI** since v2.1 (before they ran with
   `|| true` and the pipeline always passed). Only `BLE001`/`S110` are ignored at
   API boundaries — see [ruff.toml](ruff.toml) and CLAUDE.md §6.

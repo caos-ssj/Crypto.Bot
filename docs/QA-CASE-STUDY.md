@@ -4,12 +4,15 @@
 >
 > **Summary (EN):** End-to-end QA hardening of a Python 3.11/3.12 trading bot
 > (requests, rich, apscheduler, Jupiter API, DexScreener, Helius RPC). In one day
-> the test suite went from **130 to 174 tests** and coverage from **67 % to 83 %**
+> the test suite went from **130 to 176 tests** and coverage from **67 % to 83 %**
 > (`pytest --cov` gate at 60 %), raising `fetcher.py` from **20 % to 94 %** and
 > `main.py` from **35 % to 70 %**. Testing revealed a real defect (Bug #023): a
 > single malformed DexScreener pair crashed the whole search — fixed with an
-> immunity-at-record-level design and covered by regression tests. All checks run
-> locally with `make check` (ruff + black + coverage), mirroring CI.
+> immunity-at-record-level design and covered by regression tests. A second live
+> defect (Bug #024) was caught while validating the pipeline with the local LLM
+> server on: the OpenAI-style client built a duplicated `/v1/v1` endpoint, so the
+> AI silently fell back to 0 on every token — fixed and regression-tested. All
+> checks run locally with `make check` (ruff + black + coverage), mirroring CI.
 
 ---
 
@@ -87,17 +90,31 @@ de lote):**
 Detalle completo, con causa raíz, reproducibilidad y evidencia de los tests
 failing/passing en `docs/bug-reports/bug-023-fetcher-malformed-pair.md`.
 
+### Hallazgo concurrente — Bug #024 (IA local)
+
+La validación en vivo de la sección IA del dashboard (con LM Studio/Bionic
+sirviendo en `:1234`) expuso que `_call_lm_studio` duplicaba el sufijo `/v1`:
+`LM_STUDIO_URL=http://localhost:1234/v1` (documentado en `.env.example`) + el
+cliente añadiendo `/v1` = `.../v1/v1/chat/completions` → 404 de LM Studio →
+`ChatCompletion.choices = None` → fallback silencioso a `score 0` en **cada**
+token. El bug solo se ve en vivo con el servidor de IA encendido; con él apagado
+el fallback enmascara todo.
+
+**Fix (`src/ai.py`):** normar `base_url` con `removesuffix("/v1")` antes de
+construir la URL → admite ambas convenciones. Regresión en `tests/test_ai.py`
+(+2). Detalle en `docs/bug-reports/bug-024-ai-lmstudio-doble-v1.md`.
+
 ## 5. Resultados
 
-| Métrica | Antes (v2.1) | Después (v2.2.4) |
+| Métrica | Antes (v2.1) | Después (v2.2.5) |
 |---|---|---|
-| Tests | 130 | **174** (+44, +34 %) |
-| Cobertura total | 67 % | **83 %** |
+| Tests | 130 | **176** (+46, +35 %) |
+| Cobertura total | 67 % | **83 %** (82.87) |
 | `fetcher.py` | 20 % | **94 %** |
 | `main.py` | 35 % | **70 %** |
 | `risk.py` | 100 % | 100 % |
 | `analyzer.py` | 96 % | 96 % |
-| Suite completa | 2.8 s | 3.0 s (sin pérdida de determinismo) |
+| Suite completa | 2.8 s | 3.5 s (sin pérdida de determinismo) |
 
 Ejecución real:
 
@@ -105,8 +122,8 @@ Ejecución real:
 $ make check
 # ruff: 0 errores nuevos (solo BLE001 pre-existentes documentados en fronteras)
 # black: limpio src/ y tests/
-# coverage: TOTAL 1109 stmts → 83%; gate --cov-fail-under=60 ✅
-# 174 passed in 3.00s
+# coverage: TOTAL 1127 stmts → 82.87 %; gate --cov-fail-under=60 ✅
+# 176 passed in 3.51s
 ```
 
 ## 6. Proceso y metodología
@@ -134,9 +151,9 @@ $ make check
 ## 8. Cómo verificarlo
 
 ```bash
-$ make test         # 174 passed
+$ make test         # 176 passed
 $ make lint         # ruff sin errores nuevos
-$ make coverage     # > 83 % sobre src/
+$ make coverage     # 82.87 % sobre src/
 $ make check        # los tres + gate bloqueante
 ```
 
@@ -155,5 +172,5 @@ Evidencia en vivo y screenshots del portafolio: `tests/`, `docs/qa-plan.md`,
    sirvieron para cazar Bug #023 y fijar comportamientos de borde (incluso
    errores de la propia IA sin servidor).
 4. **La documentación cierra el ciclo:** cada defecto con causa raíz y lección
-   (Bug #011…#023) convierte el QA en know-how reutilizable y en evidencia
+   (Bug #011…#024) convierte el QA en know-how reutilizable y en evidencia
    auditable para hiring managers de QA.

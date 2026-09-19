@@ -27,6 +27,9 @@ htmlcov/
 logs/
 *.log
 
+# Datasets externos de análisis (no forman parte del código del bot)
+data/
+
 # IDE
 .vscode/
 .idea/
