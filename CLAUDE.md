@@ -140,7 +140,7 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
 - **Fix IA (bug-024):** `_call_lm_studio` normaliza el sufijo `/v1` del `base_url`
   (el `.env` lo trae con `/v1`); antes generaba `.../v1/v1` y la IA caía siempre
   a fallback silencioso con Bionic encendido.
-- **Tests:** 174 @ **83 %** de cobertura (eran 130 @ 67 %). Suites: fetcher 94 %,
+- **Tests:** 176 @ **83 %** de cobertura (eran 130 @ 67 %). Suites: fetcher 94 %,
   main 70 %, risk 100 %, analyzer 96 %. Resolución de la brecha reportada en
   bug-022; case study en `docs/QA-CASE-STUDY.md`.
 
