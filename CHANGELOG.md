@@ -1,5 +1,23 @@
 # Changelog
 
+## [v2.2.5] QA hardening: cobertura 67→83 % y bug-023 (pendiente de tag tras merge del PR)
+
+- **Bug #023 corregido** (`src/fetcher.py`): un par malformado de DexScreener
+  (`baseToken: null`, `liquidity` no-dict) rompía **toda** la búsqueda
+  (`fetch_by_symbol`/`fetch_recent_memecoins` → `[]`, `fetch_by_address` → `None`).
+  `_normalize_pair` ahora valida tipos y descarta solo el par sucio; nuevo helper
+  `_liquidity_usd` como `key` del `max()`. Regresión cubierta en `tests/test_fetcher.py`.
+- **Cobertura +24 puntos** (67→**83 %**): suite de **174 tests** (eran 130).
+  - `fetcher.py` 20→**94 %** (19 tests: normalización, edad, retry HTTP, búsquedas).
+  - `main.py` 35→**70 %** (36 tests: wallet, enrich/IA-fallback, apertura con re-fetch,
+    monitor TP/SL/venta fallida/pnl dry-run, modos manual/automático, `main()`).
+- **Nuevo `Makefile`**: `make check` = ruff + black `--check` + cobertura (gate 60 %),
+  el mismo pipeline del CI en un comando.
+- **Docs:** `docs/QA-CASE-STUDY.md` (case study de portafolio), `docs/bug-reports/bug-023-*`,
+  estado "resuelto" en `bug-022`, `CLAUDE.md` y `CHANGELOG` actualizados.
+
+---
+
 ## [v2.2.4] Fix de CI: pytest no arrancaba (plugin roto de anchorpy) — 2026-09-18
 
 - **`requirements.txt`**: eliminado `anchorpy>=0.20.0` (sin uso en `src/` ni `tests/`).

@@ -1,7 +1,8 @@
 # CLAUDE.md — Crypto Bot (memecoin trading en Solana)
 
 Contexto de memoria del proyecto para agentes de IA. Mantener actualizado conforme
-evoluciona el código. Última revisión: 2026-09-18. Repo en **v2.2.1**.
+evoluciona el código. Última revisión: 2026-09-18. Repo en **v2.2.4** (tag local
+con fix anchorpy + lote QA; ambos en PR pendiente de merge).
 
 ## 1. Resumen del proyecto
 
@@ -104,10 +105,11 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
 ## 6. Convenciones y verificación
 
 - Comentarios y docstrings en **español**; código simple y autocontenido.
-- Ejecutar siempre estos chequeos:
+- Ejecutar siempre estos chequeos (o directamente `make check`, el gate de QA):
   - Tests: `venv/bin/python -m pytest tests/ -q`
   - Lint: `venv/bin/ruff check src/ tests/`
   - Formato: `venv/bin/black --check src/ tests/`
+  - Cobertura (bloqueante): `venv/bin/python -m pytest tests/ --cov=src --cov-fail-under=60`
 - Notas de lint: existen `BLE001` (cachés de excepción abiertos) pre-existentes en
   fronteras de API (`fetcher`, `executor`, `main`, `ai`, `_rpc_call`) — se aceptan
   para no romper el ciclo del bot; **no añadir más sin necesidad** (si se añade,
@@ -129,7 +131,15 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
   efectivo era 0.05%).
 - **Limpieza:** eliminado `detector.py` y sus tests (código muerto); retries con backoff
   en fetcher/chain_data; docs y CHANGELOG actualizados.
-- **Tests:** 130 (eran 89). `ruff`: solo 15 pre-existentes (14 BLE001 + 1 S110), cero nuevos.
+- **Fix anchorpy (CI):** `anchorpy` roto con pytest-xprocess ≥1.0 rompía el arranque
+  de pytest en CI (plugin pytest11); es dependencia muerta → eliminado de
+  `requirements.txt` (PR #10).
+- **Robustez fetcher (bug-023):** `_normalize_pair` es inmune a pares malformados
+  (`baseToken`/`liquidity`/`volume`/`priceChange` no-dict); un par sucio se
+  descarta en vez de tumbar la búsqueda. Helper `_liquidity_usd` como key segura.
+- **Tests:** 174 @ **83 %** de cobertura (eran 130 @ 67 %). Suites: fetcher 94 %,
+  main 70 %, risk 100 %, analyzer 96 %. Resolución de la brecha reportada en
+  bug-022; case study en `docs/QA-CASE-STUDY.md`.
 
 ## 8. Fase A — estado (wallet operativa en curso)
 
