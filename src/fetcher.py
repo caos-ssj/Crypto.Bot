@@ -12,6 +12,14 @@ DEXSCREENER_BASE = "https://api.dexscreener.com"
 MEMECOIN_QUERIES = ["pump", "bonk", "wif", "popcat", "mew", "jup", "ray"]
 
 
+def _liquidity_usd(pair: dict[str, Any]) -> float:
+    """Liquidez en USD de un par, de forma segura (0.0 si es inválida)."""
+    liquidity = pair.get("liquidity")
+    if not isinstance(liquidity, dict):
+        return 0.0
+    return safe_float(liquidity.get("usd"))
+
+
 def _normalize_pair(raw: dict[str, Any]) -> dict[str, Any] | None:
     """Normaliza un par de DexScreener al formato interno.
 
@@ -21,10 +29,22 @@ def _normalize_pair(raw: dict[str, Any]) -> dict[str, Any] | None:
     Returns:
         Token normalizado o None si faltan datos.
     """
-    base = raw.get("baseToken", {})
+    base = raw.get("baseToken") or {}
+    if not isinstance(base, dict):
+        return None
     address = base.get("address")
     if not address:
         return None
+
+    liquidity = raw.get("liquidity") or {}
+    volume = raw.get("volume") or {}
+    price_change = raw.get("priceChange") or {}
+    if not isinstance(liquidity, dict):
+        liquidity = {}
+    if not isinstance(volume, dict):
+        volume = {}
+    if not isinstance(price_change, dict):
+        price_change = {}
 
     return {
         "token_address": address,
@@ -33,10 +53,10 @@ def _normalize_pair(raw: dict[str, Any]) -> dict[str, Any] | None:
         "pair_address": raw.get("pairAddress", ""),
         "price_usd": safe_float(raw.get("priceUsd")),
         "market_cap": safe_float(raw.get("marketCap") or raw.get("fdv")),
-        "liquidity_usd": safe_float((raw.get("liquidity") or {}).get("usd")),
-        "volume_5min": safe_float((raw.get("volume") or {}).get("m5")),
-        "volume_24h": safe_float((raw.get("volume") or {}).get("h24")),
-        "price_change_5min": safe_float((raw.get("priceChange") or {}).get("m5")),
+        "liquidity_usd": safe_float(liquidity.get("usd")),
+        "volume_5min": safe_float(volume.get("m5")),
+        "volume_24h": safe_float(volume.get("h24")),
+        "price_change_5min": safe_float(price_change.get("m5")),
         "pair_created_at": raw.get("pairCreatedAt"),
         "dex_id": raw.get("dexId", "?"),
         "raw": raw,
@@ -82,9 +102,7 @@ def fetch_by_address(address: str) -> dict[str, Any] | None:
         if not solana:
             return None
         # Tomar el par con más liquidez
-        best = max(
-            solana, key=lambda p: safe_float((p.get("liquidity") or {}).get("usd"))
-        )
+        best = max(solana, key=_liquidity_usd)
         return _normalize_pair(best)
     except Exception as e:
         logger.error(f"Error buscando por address: {e}")
