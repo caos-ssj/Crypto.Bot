@@ -1,0 +1,7 @@
+# Dependencias SOLO de desarrollo/pruebas (pin exacto para estabilidad del CI).
+# Instalar con: pip install -r requirements-dev.txt
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+ruff==0.16.8
+black==26.5.1

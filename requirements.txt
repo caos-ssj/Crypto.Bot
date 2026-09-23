@@ -19,21 +19,8 @@ numpy>=1.26.0
 # IA local (LM Studio es OpenAI-compatible)
 openai>=1.50.0
 
-# Utilidades
+# Utilidades / UI
 loguru>=0.7.0
 tenacity>=9.0.0
 apscheduler>=3.10.0
-
-# Testing
-pytest>=9.0.0
-pytest-asyncio>=1.4.0
-pytest-cov>=7.0.0
-
-# Calidad de código
-black>=24.0.0
-ruff>=0.6.0
-mypy>=1.11.0
-pre-commit>=3.8.0
-pytest-xprocess>=1.0.0
 rich>=13.7.0
-streamlit>=1.40.0

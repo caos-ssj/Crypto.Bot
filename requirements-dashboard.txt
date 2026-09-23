@@ -1,0 +1,3 @@
+# Dashboard Streamlit (opcional, no requerido para el bot ni el CI)
+-r requirements.txt
+streamlit>=1.40.0

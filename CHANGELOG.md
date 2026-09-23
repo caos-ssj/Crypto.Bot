@@ -1,6 +1,6 @@
 # Changelog
 
-## [v2.2.5] QA hardening: cobertura 67→83 %, bug-023 y bug-024 (pendiente de tag tras merge del PR)
+## [v2.2.5] QA hardening: cobertura 67→83 %, bug-023/024 y CI rebuild
 
 - **Bug #023 corregido** (`src/fetcher.py`): un par malformado de DexScreener
   (`baseToken: null`, `liquidity` no-dict) rompía **toda** la búsqueda
@@ -19,6 +19,17 @@
     monitor TP/SL/venta fallida/pnl dry-run, modos manual/automático, `main()`).
 - **Nuevo `Makefile`**: `make check` = ruff + black `--check` + cobertura (gate 60 %),
   el mismo pipeline del CI en un comando.
+- **CI rebuild** (`.github/workflows/ci.yml`): workflow robusto con
+  `workflow_dispatch` (lanzamiento manual), `schedule` semanal, `concurrency`
+  (cancela runs obsoletos), `permissions: read` y 2 jobs (lint + test en
+  Python 3.11/3.12 con `fail-fast: false`, timeout y cache pip).
+- **Dependencias separadas**: `requirements.txt` solo runtime; nuevo
+  `requirements-dev.txt` con **versiones pinneadas** (`pytest`, `pytest-cov`,
+  `pytest-asyncio`, `ruff`, `black`); `requirements-dashboard.txt` (Streamlit)
+  opcional. Elimina el riesgo de que un plugin `pytest11` ajeno (caso anchorpy)
+  tumbe el arranque de pytest.
+- **Dependabot agrupado**: `open-pull-requests-limit: 3` y grupos `runtime`/`dev`/
+  `actions` para reducir el ruido de PRs automáticas.
 - **Docs:** `docs/QA-CASE-STUDY.md` (case study de portafolio), `docs/bug-reports/bug-023-*`
   y `bug-024-*`, estado "resuelto" en `bug-022`, `README.md`/`README.EN.md`
   (176 tests · 83 %), `CLAUDE.md` y `CHANGELOG` actualizados.
