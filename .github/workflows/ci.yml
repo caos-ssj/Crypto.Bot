@@ -34,5 +34,5 @@ jobs:
       - name: Verificar formato
         run: black --check src/ tests/
 
-      - name: Correr tests con cobertura
+      - name: Correr tests con cobertura  
         run: pytest tests/ --cov=src --cov-fail-under=60
