@@ -98,7 +98,9 @@ inflar el score asumiendo que un token es seguro por falta de datos. Mapeo en
   - Si falla el RPC → devuelve `None` (nunca `False`).
 - Llamadas RPC con `retry_with_backoff` y batching (`getMultipleTransactions`
   — extensión Helius — con **fallback** secuencial a `getTransaction`, método RPC
-  estándar; `RPC_BATCH_LIMIT=10`, `maxSupportedTransactionVersion: 0`).
+  estándar; `RPC_BATCH_LIMIT=10`, `maxSupportedTransactionVersion: 1`). El estado
+  de soporte del batch se cachea en memoria (tras un fallo no se reintenta el
+  método en el mismo proceso, y el fallback avisa una sola vez).
 - ⚠️ No usar `getParsedTransaction`/`getMultipleParsedTransactions`: NO existen
   (error → "Method not found"). Corregido en bug-011.
 

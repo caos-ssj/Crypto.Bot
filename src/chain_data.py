@@ -21,9 +21,12 @@ LAMPORTS = 1_000_000_000
 SECURITY_TOKEN_DEPTH = 10  # transacciones recientes de la mint a escanear
 SIGNATURES_PAGE_LIMIT = 100
 CREATOR_PAGE_LIMIT = 3  # páginas para hallar la tx más antigua del mint
-RPC_BATCH_LIMIT = 10  # firuras por getMultipleParsedTransactions
+RPC_BATCH_LIMIT = 10  # firmas por getMultipleTransactions
 
 _CACHE_SIZE = 4096
+
+_multi_tx_supported: bool | None = None
+_multi_tx_fallback_logged = False
 
 
 def _rpc_call(method: str, params: list, api_key: str) -> Any:
@@ -49,7 +52,10 @@ def _rpc_call(method: str, params: list, api_key: str) -> Any:
         r = retry_with_backoff(_post, max_retries=3, base_delay=0.5)
         data = r.json()
         if "error" in data:
-            logger.warning(f"RPC {method} error: {data['error']}")
+            if method == "getMultipleTransactions":
+                logger.debug(f"RPC {method} no soportado: {data['error']}")
+            else:
+                logger.warning(f"RPC {method} error: {data['error']}")
             return None
         return data.get("result")
     except Exception as e:
@@ -189,8 +195,8 @@ def get_earliest_signature(address: str, api_key: str) -> str | None:
 
 
 def _tx_encoding() -> dict[str, Any]:
-    """Configuración de encoding para transacciones parseadas (v0 + legacy)."""
-    return {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0}
+    """Configuración de encoding para transacciones parseadas (legacy + v0 + v1)."""
+    return {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 1}
 
 
 def _fetch_parsed_transaction(signature: str, api_key: str) -> dict[str, Any] | None:
@@ -243,26 +249,34 @@ def _fetch_parsed_transactions(
     """Bach de getMultipleTransactions (extensión Helius).
 
     Si el RPC no soporta el método (getMultipleTransactions devuelve None),
-    hace fallback secuencial con getTransaction (RPC estándar).
+    hace fallback secuencial con getTransaction (RPC estándar). El estado de
+    soporte se cachea: una vez detectado, no se reintenta el método muerto.
     """
+    global _multi_tx_supported, _multi_tx_fallback_logged
     transactions: list[dict[str, Any]] = []
     for i in range(0, len(signatures), RPC_BATCH_LIMIT):
         batch = signatures[i : i + RPC_BATCH_LIMIT]
-        result = _rpc_call(
-            "getMultipleTransactions",
-            [batch, _tx_encoding()],
-            api_key,
-        )
-        if isinstance(result, list):
-            transactions.extend(t for t in result if isinstance(t, dict))
-        else:
+        result: Any = None
+        if _multi_tx_supported is not False:
+            result = _rpc_call(
+                "getMultipleTransactions",
+                [batch, _tx_encoding()],
+                api_key,
+            )
+            if isinstance(result, list):
+                _multi_tx_supported = True
+                transactions.extend(t for t in result if isinstance(t, dict))
+                continue
+            _multi_tx_supported = False
+        if not _multi_tx_fallback_logged:
+            _multi_tx_fallback_logged = True
             logger.warning(
                 "getMultipleTransactions no soportado; fallback a getTransaction"
             )
-            for signature in batch:
-                tx = _fetch_parsed_transaction(signature, api_key)
-                if tx:
-                    transactions.append(tx)
+        for signature in batch:
+            tx = _fetch_parsed_transaction(signature, api_key)
+            if tx:
+                transactions.append(tx)
     return transactions
 
 

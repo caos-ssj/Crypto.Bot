@@ -311,6 +311,28 @@ def test_fetch_recent_memecoins_skips_malformed_pair():
     assert [t["token_address"] for t in result] == ["R3"]
 
 
+def test_fetch_recent_memecoins_dedup_by_mint():
+    """Dedup: la API repite el mismo par; solo se conserva el primer mint."""
+    pairs = {
+        "pairs": [
+            _pair(
+                baseToken={"address": "R1", "symbol": "R1", "name": "r"},
+                liquidity={"usd": 10},
+            ),
+            _pair(
+                baseToken={"address": "R1", "symbol": "R1", "name": "r"},
+                liquidity={"usd": 20},
+            ),
+            _pair(baseToken={"address": "R2", "symbol": "R2", "name": "r2"}),
+        ]
+    }
+    with patch("src.fetcher._get_json", return_value=pairs), patch(
+        "random.choice", return_value="bonk"
+    ):
+        result = fetch_recent_memecoins()
+    assert [t["token_address"] for t in result] == ["R1", "R2"]
+
+
 def test_fetch_recent_memecoins_error_returns_empty():
     """Error de red → lista vacía, el ciclo continúa."""
     with patch("src.fetcher._get_json", side_effect=Exception("boom")), patch(

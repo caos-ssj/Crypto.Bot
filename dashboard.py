@@ -1,7 +1,13 @@
-"""Dashboard web con Streamlit para el bot."""
+"""Dashboard web con Streamlit para el bot.
+
+Tono visual: dossier técnico "terminal dark" (misma identidad que la página de
+presentación). Paleta + tipografía auto-hospedada desde `dashboard_theme.css`.
+"""
 
 import json
 from datetime import datetime
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
@@ -15,7 +21,6 @@ from src.storage import (
     init_db,
 )
 
-
 # ============ CONFIG ============
 st.set_page_config(
     page_title="Crypto Bot Dashboard",
@@ -26,23 +31,43 @@ st.set_page_config(
 
 init_db()
 
+theme_file = Path(__file__).parent / "dashboard_theme.css"
+if theme_file.exists():
+    st.markdown(
+        f"<style>{theme_file.read_text()}</style>",
+        unsafe_allow_html=True,
+    )
+
+
+def _stat(label: str, value: str, tone: str = "ok", caption: str = "") -> str:
+    """Célula de cifra verificada (hairline + mono label + numeral serif con glow)."""
+    num_style = {"ok": "ok", "cy": "cy", "ink": ""}.get(tone, "")
+    cap = f'<div class="st-cap">{caption}</div>' if caption else ""
+    return (
+        f"""<div class="stat"><div class="st-hd">{label}</div>"""
+        f"""<div class="st-num {num_style}">{value}</div>{cap}</div>"""
+    )
+
+
+def _stat_row(cells: list[str]) -> str:
+    """Fila de células separadas por hairlines (grid dossier)."""
+    return f'<div class="proof">{"".join(cells)}</div>'
+
 
 # ============ HEADER ============
 st.markdown("""
-    <h1 style='text-align: center; color: #00d4ff; margin-bottom: 0;'>
-        🤖 CRYPTO BOT
-    </h1>
-    <p style='text-align: center; color: #888; margin-top: 0;'>
-        Dashboard de análisis de memecoins en Solana
-    </p>
+    <h1 class="dsh-title"><span class="r">CRYPTO&nbsp;BOT</span></h1>
+    <p class="dsh-sub">DASHBOARD · ANÁLISIS DE MEMECOINS EN SOLANA</p>
+    <div class="dsh-rule"></div>
 """, unsafe_allow_html=True)
-
-st.divider()
 
 
 # ============ SIDEBAR ============
 with st.sidebar:
-    st.header("⚙️ Configuración")
+    st.markdown(
+        "<div class='st-hd'>CONFIGURACIÓN</div>",
+        unsafe_allow_html=True,
+    )
     limit = st.slider("Análisis a mostrar", 10, 500, 50, step=10)
     action_filter = st.multiselect(
         "Filtrar por acción",
@@ -50,10 +75,10 @@ with st.sidebar:
         default=["COMPRA", "OBSERVAR", "EVITAR"],
     )
     min_score = st.slider("Score final mínimo", 0, 100, 0)
-    
+
     if st.button("🔄 Refrescar"):
         st.rerun()
-    
+
     st.divider()
     st.caption("Ejecuta el bot en otra terminal:")
     st.code("python -m src.main", language="bash")
@@ -62,20 +87,20 @@ with st.sidebar:
 # ============ MÉTRICAS ============
 stats = get_stats()
 
-col1, col2, col3, col4, col5 = st.columns(5)
+st.markdown(
+    _stat_row(
+        [
+            _stat("Total analizados", str(stats["total"])),
+            _stat("Compra", str(stats["compra"]), "ok"),
+            _stat("Observar", str(stats["observar"]), "cy"),
+            _stat("Evitar", str(stats["evitar"]), "ink"),
+            _stat("Ejecutadas", str(stats["executed"]), "ok"),
+        ]
+    ),
+    unsafe_allow_html=True,
+)
 
-with col1:
-    st.metric("📊 Total analizados", stats["total"])
-with col2:
-    st.metric("🟢 COMPRA", stats["compra"], delta_color="normal")
-with col3:
-    st.metric("🟡 OBSERVAR", stats["observar"])
-with col4:
-    st.metric("🔴 EVITAR", stats["evitar"])
-with col5:
-    st.metric("💸 Ejecutadas", stats["executed"])
-
-st.divider()
+st.markdown('<div style="height:1.2rem"></div>', unsafe_allow_html=True)
 
 
 # ============ CARGA DE DATOS ============
@@ -102,7 +127,7 @@ if df.empty:
 
 
 # ============ GRÁFICO DE SCORES ============
-st.subheader("📈 Evolución de Scores")
+st.markdown('<div class="dsh-hd">Evolución de scores</div>', unsafe_allow_html=True)
 
 chart_df = df[["timestamp", "rule_score", "ai_score", "final_score"]].copy()
 chart_df["timestamp"] = pd.to_datetime(chart_df["timestamp"])
@@ -110,7 +135,7 @@ chart_df = chart_df.sort_values("timestamp").set_index("timestamp")
 
 st.line_chart(
     chart_df,
-    color=["#888888", "#00d4ff", "#00ff88"],
+    color=["#aeb8c4", "#22d3ee", "#3ddc97"],
     height=250,
 )
 
@@ -118,7 +143,10 @@ st.divider()
 
 
 # ============ TABLA PRINCIPAL ============
-st.subheader(f"📋 Análisis recientes ({len(df)})")
+st.markdown(
+    f'<div class="dsh-hd">Análisis recientes · {len(df)}</div>',
+    unsafe_allow_html=True,
+)
 
 display_df = df[[
     "timestamp", "symbol", "price_usd", "market_cap",
@@ -151,22 +179,27 @@ st.divider()
 
 
 # ============ RIESGO / POSICIONES ============
-st.subheader("⚖️ Riesgo / Posiciones")
+st.markdown('<div class="dsh-hd">Riesgo / Posiciones</div>', unsafe_allow_html=True)
 
 open_positions = get_open_positions()
 closed = get_closed_positions(limit=100)
 today_loss = get_today_realized_loss()
 realized_total = sum(p.get("pnl_sol") or 0.0 for p in closed)
+trailing_active = sum(1 for p in open_positions if p.get("trailing_active"))
 
-r1, r2, r3, r4 = st.columns(4)
-with r1:
-    st.metric("🟢 Posiciones abiertas", len(open_positions), delta="máx 3")
-with r2:
-    st.metric("📉 Pérdida diaria realizada", f"{today_loss:.4f} SOL", delta="límite 0.5")
-with r3:
-    st.metric("📊 P&L realizado (histórico)", f"{realized_total:.4f} SOL")
-with r4:
-    st.metric("🔒 SL/Trailing activos", sum(1 for p in open_positions if p.get("trailing_active")))
+st.markdown(
+    _stat_row(
+        [
+            _stat("Posiciones abiertas", str(len(open_positions)), "ok", "máx 3"),
+            _stat("Pérdida diaria", f"{today_loss:.4f} SOL", "cy", "límite 0.5"),
+            _stat("P&L realizado", f"{realized_total:.4f} SOL", "ok", "histórico"),
+            _stat("SL/Trailing activos", str(trailing_active), "ink", "posiciones"),
+        ]
+    ),
+    unsafe_allow_html=True,
+)
+
+st.markdown('<div style="height:1.2rem"></div>', unsafe_allow_html=True)
 
 if not open_positions and not closed:
     st.info("📭 Sin posiciones todavía. El modo DRY_RUN no abre posiciones; se llenará al operar en real.")
@@ -179,7 +212,7 @@ else:
             try:
                 t = fetch_by_address(p["token_address"])
                 live_price = (t or {}).get("price_usd")
-            except Exception:
+            except Exception:  # noqa: BLE001 - frontera de red (precio en vivo)
                 live_price = None
             entry = p.get("entry_price") or 0.0
             amount = p.get("amount_sol") or 0.0
@@ -217,31 +250,32 @@ st.divider()
 
 
 # ============ DETALLE POR TOKEN ============
-st.subheader("🔍 Detalle de un token")
+st.markdown('<div class="dsh-hd">Detalle de un token</div>', unsafe_allow_html=True)
 
 symbols = df["symbol"].unique().tolist()
 if symbols:
     selected = st.selectbox("Selecciona símbolo", symbols)
     token_rows = df[df["symbol"] == selected]
-    
+
     if not token_rows.empty:
         latest = token_rows.iloc[0]
-        
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.metric("Score reglas", latest["rule_score"])
-        with c2:
-            st.metric("Score IA", latest["ai_score"])
-        with c3:
-            action_color = {"COMPRA": "🟢", "OBSERVAR": "🟡", "EVITAR": "🔴"}
-            st.metric(
-                f"{action_color.get(latest['action'], '')} {latest['action']}",
-                latest["final_score"],
-            )
-        
+
+        st.markdown(
+            _stat_row(
+                [
+                    _stat("Score reglas", str(latest["rule_score"])),
+                    _stat("Score IA", str(latest["ai_score"]), "cy"),
+                    _stat(latest["action"], str(latest["final_score"]), "ok"),
+                ]
+            ),
+            unsafe_allow_html=True,
+        )
+
+        st.markdown('<div style="height:1.2rem"></div>', unsafe_allow_html=True)
+
         st.markdown("**🤖 Análisis de la IA:**")
         st.info(latest["ai_reason"] or "Sin razón proporcionada")
-        
+
         st.markdown("**🔍 Filtros aplicados:**")
         details = latest["details"]
         if details:
@@ -266,4 +300,7 @@ if symbols:
 
 # ============ FOOTER ============
 st.divider()
-st.caption(f"Última actualización: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+st.caption(
+    f"Última actualización: "
+    f"{datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S')}"
+)

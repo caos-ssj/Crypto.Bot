@@ -149,7 +149,17 @@ def fetch_recent_memecoins() -> list[dict[str, Any]]:
         pairs = data.get("pairs") or []
         solana = [p for p in pairs if p.get("chainId") == "solana"]
         normalized = [_normalize_pair(p) for p in solana]
-        return [t for t in normalized if t is not None]
+        tokens = [t for t in normalized if t is not None]
+        # Deduplicar por mint: la API devuelve el mismo par repetido en una query.
+        seen: set[str] = set()
+        unique: list[dict[str, Any]] = []
+        for t in tokens:
+            address = t["token_address"]
+            if address in seen:
+                continue
+            seen.add(address)
+            unique.append(t)
+        return unique
     except Exception as e:
         logger.error(f"Error fetch recientes (query={query}): {e}")
         return []
