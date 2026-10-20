@@ -17,8 +17,8 @@
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)]()
 [![Solana](https://img.shields.io/badge/Solana-mainnet-9945FF?logo=solana)](https://solana.com)
 [![CI](https://img.shields.io/github/actions/workflow/status/caos-ssj/Crypto.Bot/ci.yml?branch=main&label=CI)]()
-[![Tests](https://img.shields.io/badge/tests-130-green)]()
-[![Coverage](https://img.shields.io/badge/coverage-67%25-yellowgreen)]()
+[![Tests](https://img.shields.io/badge/tests-177_passed-green)]()
+[![Coverage](https://img.shields.io/badge/coverage-83%25-green)]()
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)](dashboard.py)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
@@ -223,7 +223,7 @@ crypto-bot/
 │   ├── config.py        # conservative / balanced / aggressive modes
 │   └── utils.py         # retry with backoff, formatters
 ├── dashboard.py         # web dashboard (Streamlit)
-├── tests/               # 176 tests (pytest)
+├── tests/               # 177 tests (pytest)
 ├── docs/                # architecture · filters · risk · qa · bug-reports
 ├── CONTRIBUTING.md      # how to contribute
 ├── SECURITY.md          # vulnerability disclosure policy
@@ -291,7 +291,7 @@ venv/bin/ruff check src/ tests/
 venv/bin/black --check src/ tests/
 ```
 
-- **176 tests** cover rules, filters, on-chain, local AI, real swaps (mocked),
+- **177 tests** cover rules, filters, on-chain, local AI, real swaps (mocked),
   risk and storage. Current coverage: **83 %** (fetcher 94 %, main 70 %,
   risk 100 %, analyzer 96 %).
 - **ruff and black are blocking in CI** since v2.1 (before they ran with
