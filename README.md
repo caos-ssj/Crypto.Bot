@@ -1,4 +1,4 @@
-# Crypto Bot — Trading autónomo de memecoins en Solana
+# Crypto Bot — Bot de trading para Solana con QA primero (Python async)
 
 <p align="center"><b><a href="README.md">🇪🇸 Español</a> · <a href="README.EN.md">🇬🇧 English</a></b></p>
 
@@ -21,6 +21,9 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)](dashboard.py)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 [![Licencia](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+
+**177 tests pytest con 83 % de cobertura** tras una barrera del 60 %, **15 bug reports** con causa
+raíz, `DRY_RUN` por defecto.
 
 Bot autónomo de trading de memecoins en **Solana**: detecta tokens nuevos con
 DexScreener, los analiza con **11 filtros on-chain** (Helius), los evalúa con
