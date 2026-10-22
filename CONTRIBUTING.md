@@ -34,8 +34,8 @@ By participating in this project you agree to abide by our
 The repo has no build system; it uses a plain virtualenv:
 
 ```bash
-git clone git@github.com:caosssj/Crypto.Bot.git
-cd Crypto.Bot
+git clone https://gitlab.com/braynerssj26/crypto-bot.git
+cd crypto-bot
 python3 -m venv venv
 venv/bin/pip install -r requirements.txt
 cp .env.example .env   # SOLANA_RPC_URL + optional HELIUS_API_KEY

@@ -1,0 +1,47 @@
+# CI de crypto-bot en GitLab (el repo público vive aquí; .github/ queda de la etapa en GitHub).
+#
+# Lo mismo que `make check`: ruff + black --check, y pytest con cobertura que
+# rompe el pipeline por debajo del 60 %. Tests en 3.11 y 3.12, como en local.
+# `coverage:` alimenta la insignia de cobertura de GitLab con el TOTAL real.
+
+stages: [lint, test]
+
+default:
+  interruptible: true
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+lint:
+  stage: lint
+  image: python:3.12-slim
+  timeout: 10m
+  script:
+    - pip install --quiet -r requirements-dev.txt
+    - ruff check src/ tests/
+    - black --check src/ tests/
+
+test:
+  stage: test
+  image: python:${PYTHON_VERSION}-slim
+  timeout: 15m
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ["3.11", "3.12"]
+  script:
+    - python -m pip install --quiet --upgrade pip
+    - pip install --quiet -r requirements.txt -r requirements-dev.txt
+    - pytest tests/ --cov=src --cov-report=term --cov-report=xml --cov-fail-under=60 --junitxml=report.xml
+  coverage: '/^TOTAL\s+\d+\s+\d+\s+(\d+(?:\.\d+)?)%/'
+  artifacts:
+    when: always
+    expire_in: 30 days
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml

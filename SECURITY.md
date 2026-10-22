@@ -5,7 +5,7 @@
 Please **do not open a public issue** for security vulnerabilities. This is a
 trading bot: a disclosed exploit could be used against real positions.
 
-Report privately by opening a [security advisory](https://github.com/caosssj/Crypto.Bot/security/advisories/new)
+Report privately by opening a [confidential issue](https://gitlab.com/braynerssj26/crypto-bot/-/issues/new?issue[confidential]=true)
 or emailing the maintainer (see repo settings → About → contact).
 
 Please include:

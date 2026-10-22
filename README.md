@@ -12,11 +12,10 @@
         B  O  T   ·   S O L A N A   ·   2 0 2 6
 ```
 
-[![Versión](https://img.shields.io/github/v/release/caos-ssj/Crypto.Bot?color=blue&label=versi%C3%B3n)](https://github.com/caos-ssj/Crypto.Bot/releases)
+[![Versión](https://img.shields.io/gitlab/v/tag/braynerssj26%2Fcrypto-bot?sort=semver&color=blue&label=versi%C3%B3n)](https://gitlab.com/braynerssj26/crypto-bot/-/tags)
 [![Estado](https://img.shields.io/badge/status-in_development-yellow)]()
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)]()
 [![Solana](https://img.shields.io/badge/Solana-mainnet-9945FF?logo=solana)](https://solana.com)
-[![CI](https://img.shields.io/github/actions/workflow/status/caos-ssj/Crypto.Bot/ci.yml?branch=main&label=CI)]()
 [![Tests](https://img.shields.io/badge/tests-177_passed-green)]()
 [![Cobertura](https://img.shields.io/badge/coverage-83%25-green)]()
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)](dashboard.py)
@@ -46,7 +45,7 @@ gestión de riesgo activa (TP/SL/trailing) y un dashboard web para monitorearlo.
 ## ⚡ Pruébalo en 3 comandos
 
 ```bash
-git clone git@github.com:caosssj/Crypto.Bot.git && cd Crypto.Bot
+git clone https://gitlab.com/braynerssj26/crypto-bot.git && cd crypto-bot
 python3 -m venv venv && venv/bin/pip install -r requirements.txt
 venv/bin/python -m src.main
 ```
@@ -238,8 +237,8 @@ crypto-bot/
 ## Quickstart
 
 ```bash
-git clone git@github.com:caosssj/Crypto.Bot.git
-cd Crypto.Bot
+git clone https://gitlab.com/braynerssj26/crypto-bot.git
+cd crypto-bot
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -347,8 +346,8 @@ venv/bin/black --check src/ tests/
 ## Contribuir
 
 ¿Ideas, bugs o features? Revisa [CONTRIBUTING.md](CONTRIBUTING.md), abre un
-[issue](https://github.com/caosssj/Crypto.Bot/issues) usando los templates y
-envía un PR. **PRs welcome** 👋
+[issue](https://gitlab.com/braynerssj26/crypto-bot/-/issues) y
+envía un merge request. **PRs welcome** 👋
 
 ---
 

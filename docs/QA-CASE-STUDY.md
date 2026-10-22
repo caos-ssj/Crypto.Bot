@@ -1,6 +1,6 @@
 # QA Case Study — Crypto.Bot (Solana memecoin trading bot)
 
-> **Autor:** QA Automation Engineer · **Fecha:** 2026-09-18 · **Repo:** `caos-ssj/Crypto.Bot`
+> **Autor:** QA Automation Engineer · **Fecha:** 2026-09-18 · **Repo:** [gitlab.com/braynerssj26/crypto-bot](https://gitlab.com/braynerssj26/crypto-bot)
 >
 > **Summary (EN):** End-to-end QA hardening of a Python 3.11/3.12 trading bot
 > (requests, rich, apscheduler, Jupiter API, DexScreener, Helius RPC). In one day
