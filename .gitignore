@@ -52,6 +52,7 @@ config/config.local.yaml
 # Tooling de agentes
 .agents/
 .opencode/
+opencode.json
 
 # Backups
 *.bak
