@@ -1,4 +1,4 @@
-# Crypto Bot — Bot de trading para Solana con QA primero (Python async)
+# Caos CryptoQA — pipeline asíncrono de datos y ejecución en Solana (caso de estudio de QA)
 
 <p align="center"><b><a href="README.es.md">🇪🇸 Español</a> · <a href="README.md">🇬🇧 English</a></b></p>
 
@@ -14,13 +14,13 @@
 **177 tests pytest con 83 % de cobertura** tras una barrera del 60 %, **15 bug reports** con causa
 raíz, `DRY_RUN` por defecto.
 
-Bot autónomo de trading de memecoins en **Solana**: detecta tokens nuevos con
+Pipeline asíncrono de datos y ejecución en **Solana**, construido como caso de estudio de QA: detecta tokens nuevos con
 DexScreener, los analiza con **11 filtros on-chain** (Helius), los evalúa con
 **IA local** (Qwen3/LM Studio) y ejecuta swaps reales vía **Jupiter** con
 gestión de riesgo activa (TP/SL/trailing) y un dashboard web para monitorearlo.
 
 > ⚠️ **Aviso honesto:** este software es **con fines educativos y de
-> investigación**. El trading de memecoins conlleva riesgo de pérdida total del
+> investigación**. El trading de activos digitales volátiles conlleva riesgo de pérdida total del
 > capital. Todo lo que se describe aquí funciona en `DRY_RUN` (simulación) por
 > defecto; operar con dinero real es una decisión exclusiva del usuario.
 
