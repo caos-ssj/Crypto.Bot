@@ -25,7 +25,7 @@ By participating in this project you agree to abide by our
 
 ## How to start
 
-1. Check the [README](README.EN.md) to know what the project does.
+1. Check the [README](README.md) to know what the project does.
 2. Look for issues labeled `good first issue` if you're new.
 3. Comment on the issue you want to work on so people know you're on it.
 

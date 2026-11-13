@@ -1,51 +1,40 @@
-# Crypto Bot — Bot de trading para Solana con QA primero (Python async)
+# Caos CryptoQA — Solana async data & execution pipeline (QA hardening case study)
 
-<p align="center"><b><a href="README.md">🇪🇸 Español</a> · <a href="README.EN.md">🇬🇧 English</a></b></p>
+<p align="center"><b><a href="README.es.md">🇪🇸 Español</a> · <a href="README.md">🇬🇧 English</a></b></p>
 
-```
-  ██████╗██████╗ ██╗   ██╗██████╗ ████████╗ ██████╗
- ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗╚══██╔══╝██╔═══██╗
- ██║     ██████╔╝ ╚████╔╝ ██████╔╝   ██║   ██║   ██║
- ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝    ██║   ██║   ██║
- ╚██████╗██║  ██║   ██║   ██║        ██║   ╚██████╔╝
-  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝        ╚═╝    ╚═════╝
-        B  O  T   ·   S O L A N A   ·   2 0 2 6
-```
-
-[![Versión](https://img.shields.io/gitlab/v/tag/braynerssj26%2Fcrypto-bot?sort=semver&color=blue&label=versi%C3%B3n)](https://gitlab.com/braynerssj26/crypto-bot/-/tags)
-[![Estado](https://img.shields.io/badge/status-in_development-yellow)]()
+[![Release](https://img.shields.io/gitlab/v/tag/braynerssj26%2Fcrypto-bot?sort=semver&color=blue&label=release)](https://gitlab.com/braynerssj26/crypto-bot/-/tags)
+[![Status](https://img.shields.io/badge/status-in_development-yellow)]()
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)]()
 [![Solana](https://img.shields.io/badge/Solana-mainnet-9945FF?logo=solana)](https://solana.com)
 [![Tests](https://img.shields.io/badge/tests-177_passed-green)]()
-[![Cobertura](https://img.shields.io/badge/coverage-83%25-green)]()
+[![Coverage](https://img.shields.io/badge/coverage-83%25-green)]()
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red)](dashboard.py)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
-[![Licencia](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 
-**177 tests pytest con 83 % de cobertura** tras una barrera del 60 %, **15 bug reports** con causa
-raíz, `DRY_RUN` por defecto.
+**177 pytest tests at 83 % coverage** behind a 60 % gate, **15 bug reports** with root cause,
+`DRY_RUN` by default.
 
-Bot autónomo de trading de memecoins en **Solana**: detecta tokens nuevos con
-DexScreener, los analiza con **11 filtros on-chain** (Helius), los evalúa con
-**IA local** (Qwen3/LM Studio) y ejecuta swaps reales vía **Jupiter** con
-gestión de riesgo activa (TP/SL/trailing) y un dashboard web para monitorearlo.
+Async **Solana** data and execution pipeline, built as a QA hardening case study: it detects new tokens with
+DexScreener, analyzes them with **11 on-chain filters** (Helius), scores them with
+**local AI** (Qwen3/LM Studio) and executes real swaps via **Jupiter** with active
+risk management (TP/SL/trailing) plus a web dashboard for monitoring.
 
-> ⚠️ **Aviso honesto:** este software es **con fines educativos y de
-> investigación**. El trading de memecoins conlleva riesgo de pérdida total del
-> capital. Todo lo que se describe aquí funciona en `DRY_RUN` (simulación) por
-> defecto; operar con dinero real es una decisión exclusiva del usuario.
+> ⚠️ **Honest disclaimer:** this software is **for educational and research
+> purposes only**. Trading volatile digital assets carries a risk of **total loss of capital**.
+> Everything described here runs in `DRY_RUN` (simulation) by default; trading
+> with real money is entirely the user's own decision.
 
 ---
 
-## ⚙️ Características clave
+## ⚙️ Key features
 
-- 🤖 **Pipeline completo** · detección (DexScreener) → análisis on-chain (Helius) → IA local → decisión → ejecución (Jupiter)
-- 🛡️ **Scoring honesto** · 11 filtros ponderados; dato no verificado = `0 pts` + `missing`
-- 🎯 **Riesgo activo** · TP/SL/trailing, máx. 3 posiciones, pérdida diaria 0.5 SOL
-- 📊 **Dashboard web** (Streamlit) con posiciones y precios en vivo
-- 🧠 **IA local** (Qwen3 vía LM Studio) con fallback seguro, sin dependencia de nube
+- 🤖 **Full pipeline** · detection (DexScreener) → on-chain analysis (Helius) → local AI → decision → execution (Jupiter)
+- 🛡️ **Honest scoring** · 11 weighted filters; unverified data = `0 pts` + `missing`
+- 🎯 **Active risk** · TP/SL/trailing, max 3 positions, 0.5 SOL daily loss
+- 📊 **Web dashboard** (Streamlit) with live positions and prices
+- 🧠 **Local AI** (Qwen3 via LM Studio) with a safe fallback — no cloud dependency
 
-## ⚡ Pruébalo en 3 comandos
+## ⚡ Try it in 3 commands
 
 ```bash
 git clone https://gitlab.com/braynerssj26/crypto-bot.git && cd crypto-bot
@@ -53,184 +42,184 @@ python3 -m venv venv && venv/bin/pip install -r requirements.txt
 venv/bin/python -m src.main
 ```
 
-> El menú interactivo ofrece los modos manual/automático y el dashboard (Streamlit)
-> se abre con un comando propio. Sin `HELIUS_API_KEY` ni wallet el bot igual
-> detecta, puntúa y decide: solo agregas `.env` para activar el análisis on-chain.
+> The interactive menu offers manual/automatic modes (the Streamlit dashboard runs
+> with its own command). Without `HELIUS_API_KEY` or a wallet the bot still
+> detects, scores and decides: you only add `.env` to enable on-chain analysis.
 
 ---
 
-## Tabla de contenido
+## Table of contents
 
-- [Características clave](#características-clave)
-- [Cómo funciona](#cómo-funciona)
-- [Arquitectura](#arquitectura)
-- [Scoring: los 11 filtros](#scoring-los-11-filtros)
-- [Modos de operación](#modos-de-operación)
-- [Gestión de riesgo](#gestión-de-riesgo)
-- [Capturas](#capturas)
-- [Estructura del repositorio](#estructura-del-repositorio)
+- [Key features](#key-features)
+- [How it works](#how-it-works)
+- [Architecture](#architecture)
+- [Scoring: the 11 filters](#scoring-the-11-filters)
+- [Operation modes](#operation-modes)
+- [Risk management](#risk-management)
+- [Screenshots](#screenshots)
+- [Repository structure](#repository-structure)
 - [Quickstart](#quickstart)
-- [Configuración](#configuración)
-- [Uso](#uso)
-- [Testing y calidad](#testing-y-calidad)
-- [Documentación](#documentación)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Testing & quality](#testing--quality)
+- [Documentation](#documentation)
 - [Roadmap](#roadmap)
-- [Contribuir](#contribuir)
-- [Licencia](#licencia)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## Cómo funciona
+## How it works
 
-Cada token encontrado pasa por un pipeline de 6 etapas. El objetivo es tomar
-una **decisión honesta**: si un dato on-chain no puede verificarse, el filtro
-da **0 puntos** (nunca se asume que un token es seguro por falta de datos).
+Every token found goes through a 6-stage pipeline. The goal is an **honest
+decision**: if an on-chain datapoint cannot be verified, the filter scores
+**0 points** (the bot never assumes a token is safe because data is missing).
 
 ```mermaid
 flowchart TD
-    A[1. Detección<br/>DexScreener · ciclo 15s] --> B[2. Análisis on-chain<br/>Helius RPC · holders · bundles · dev]
-    B --> C[3. Reglas<br/>11 filtros ponderados · 0–100]
-    C --> D[4. IA local<br/>Qwen3 4B · LM Studio · peso 30%]
-    D --> E[5. Decisión<br/>COMPRA · OBSERVAR · EVITAR]
-    E --> F[6. Ejecución + Riesgo<br/>Jupiter · TP/SL/trailing]
+    A[1. Detection<br/>DexScreener · 15s cycle] --> B[2. On-chain analysis<br/>Helius RPC · holders · bundles · dev]
+    B --> C[3. Rules<br/>11 weighted filters · 0–100]
+    C --> D[4. Local AI<br/>Qwen3 4B · LM Studio · 30% weight]
+    D --> E[5. Decision<br/>BUY · WATCH · AVOID]
+    E --> F[6. Execution + Risk<br/>Jupiter · TP/SL/trailing]
     F --> G[(SQLite<br/>analyses · positions · seen_tokens)]
-    G --> H[Dashboard<br/>Streamlit · en vivo]
+    G --> H[Dashboard<br/>Streamlit · live]
 ```
 
-El score final combina reglas e IA, y la decisión es binaria según umbrales:
+The final score combines rules and AI, and the decision is binary by thresholds:
 
 ```
-final_score = 70% × score_reglas + 30% × score_IA
+final_score = 70% × rules_score + 30% × AI_score
 
-  score > 70   →  🟢 COMPRA   (ejecuta swap si el riesgo lo permite)
-  50 ≤ score   →  🟡 OBSERVAR (se registra, no se opera)
-  score < 50   →  🔴 EVITAR
+  score > 70   →  🟢 BUY      (executes a swap if risk allows)
+  50 ≤ score   →  🟡 WATCH    (recorded, not traded)
+  score < 50   →  🔴 AVOID
 ```
 
-En cada ciclo el bot además:
-1. **Monitorea posiciones abiertas** (TP/SL/trailing) antes de buscar tokens nuevos.
-2. Salta tokens ya procesados gracias a la persistencia de `seen_tokens` en
-   SQLite (evita reprocesos y gasto innecesario de RPC entre reinicios).
-3. Aísla los fallos de cada API externa: si Helius, LM Studio o DexScreener
-   fallan, el filtro afectado da `0 pts` y **el bot sigue corriendo**.
+On every cycle the bot also:
+1. **Monitors open positions** (TP/SL/trailing) before looking for new tokens.
+2. Skips already-processed tokens thanks to `seen_tokens` persistence in SQLite
+   (no reprocessing or wasted RPC between restarts).
+3. Isolates every external API failure: if Helius, LM Studio or DexScreener
+   fails, the affected filter scores `0` and **the bot keeps running**.
 
 ---
 
-## Arquitectura
+## Architecture
 
 ```
-Detección (DexScreener) → Análisis (11 filtros) → IA local (Qwen3)
-→ Decisión → Ejecución (Jupiter, wallet real) → Riesgo (TP/SL/trailing)
+Detection (DexScreener) → Analysis (11 filters) → Local AI (Qwen3)
+→ Decision → Execution (Jupiter, real wallet) → Risk (TP/SL/trailing)
 ```
 
-| Módulo | Archivo | Rol |
+| Module | File | Role |
 |---|---|---|
-| Orquestador | `src/main.py` | Menú rich, modos manual/automático, `process_token`, monitoreo de posiciones |
-| Detección | `src/fetcher.py` | Datos DexScreener (`fetch_by_address`, `fetch_by_symbol`, `fetch_recent_memecoins`). Única fuente de normalización |
-| On-chain | `src/chain_data.py` | Helius RPC: mint info, top-10 holders, wallet del dev, bundles, dev-sell. Dato no verificado → `None` |
-| Reglas | `src/analyzer.py` | 11 filtros ponderados, score 0–100 y decisión unificada (`decide`) |
-| IA local | `src/ai.py` | `get_ai_score` con Qwen3 via LM Studio, peso 30 %, fallback robusto a 0 |
-| Ejecución | `src/executor.py` | Quotes + swaps reales vía Jupiter v6 (firma con solders) o `dry_run` |
-| Riesgo | `src/risk.py` | `Position`, TP/SL/trailing, límite de posiciones y pérdida diaria |
-| Persistencia | `src/storage.py` | SQLite: `analyses`, `positions`, `seen_tokens` |
-| Configuración | `src/config.py` | Modos `conservador` / `equilibrado` / `agresivo` |
+| Orchestrator | `src/main.py` | Rich menu, manual/auto modes, `process_token`, position monitoring |
+| Detection | `src/fetcher.py` | DexScreener data (`fetch_by_address`, `fetch_by_symbol`, `fetch_recent_memecoins`). Single normalization source |
+| On-chain | `src/chain_data.py` | Helius RPC: mint info, top-10 holders, dev wallet, bundles, dev-sell. Unverified data → `None` |
+| Rules | `src/analyzer.py` | 11 weighted filters, 0–100 score and unified decision (`decide`) |
+| Local AI | `src/ai.py` | `get_ai_score` with Qwen3 via LM Studio, 30 % weight, robust fallback to 0 |
+| Execution | `src/executor.py` | Quotes + real swaps via Jupiter v6 (signed with solders) or `dry_run` |
+| Risk | `src/risk.py` | `Position`, TP/SL/trailing, position cap and daily loss |
+| Persistence | `src/storage.py` | SQLite: `analyses`, `positions`, `seen_tokens` |
+| Configuration | `src/config.py` | `conservative` / `balanced` / `aggressive` modes |
 
-Detalle completo en [docs/arquitectura.md](docs/arquitectura.md).
+Full detail in [docs/arquitectura.md](docs/arquitectura.md).
 
 ---
 
-## Scoring: los 11 filtros
+## Scoring: the 11 filters
 
-Cada filtro aporta puntos ponderados (máximo 115, normalizados a 100). El peso
-visual refleja su importancia en la decisión:
+Each filter contributes weighted points (max 115, normalized to 100). The visual
+weight reflects its importance in the decision:
 
 ```
-Seguridad        ██████████████  25 pts   sin bundles · dev sin vender
-Market cap       ██████████      20 pts   rango según modo
-Global fees      ██████████      20 pts   ~ 0.15 SOL (sin fuente fiable hoy)
-Edad del token   ████████        15 pts   < 24 h
-Liquidez / MC    ██               5 pts   > 3 %
+Security         ██████████████  25 pts   no bundles · dev hasn't sold
+Market cap       ██████████      20 pts   range per mode
+Global fees      ██████████      20 pts   ~ 0.15 SOL (no reliable source yet)
+Token age        ████████        15 pts   < 24 h
+Liquidity / MC   ██               5 pts   > 3 %
 Top-10 holders   ██               5 pts   < 50 %
-Volumen 5 min    ██               5 pts   > $2 K
-Edad del creador ██               5 pts   > 3 días
-Autoridades      ██               5 pts   mint/freeze deshabilitadas
-Bundles          ██               5 pts   sin lanzamiento agrupado
-Dev sell         ██               5 pts   el dev no ha soltado su bolsa
+5-min volume     ██               5 pts   > $2 K
+Creator age      ██               5 pts   > 3 days
+Authorities      ██               5 pts   mint/freeze disabled
+Bundles          ██               5 pts   no grouped launch
+Dev sell         ██               5 pts   dev hasn't dumped their bag
 ```
 
-**Política de datos no verificados** (regla crítica del proyecto): si un campo
-on-chain no pudo confirmarse (fallo de RPC, API sin datos), se guarda como
-`None`, el filtro da `0 pts` y se marca `status: "missing"`. El score jamás se
-infla asumiendo que un token es seguro por falta de datos.
+**Unverified-data policy** (a critical project rule): if an on-chain field could
+not be confirmed (RPC failure, missing API data), it is stored as `None`, the
+filter scores `0` and it is flagged `status: "missing"`. The score is never
+inflated by assuming a token is safe because data is missing.
 
-Detalle completo en [docs/filtros.md](docs/filtros.md).
+Full detail in [docs/filtros.md](docs/filtros.md).
 
 ---
 
-## Modos de operación
+## Operation modes
 
-Los umbrales cambian según el modo (definidos en `src/config.py`):
+Thresholds change per mode (defined in `src/config.py`):
 
-| Parámetro | Conservador | Equilibrado | Agresivo |
+| Parameter | Conservative | Balanced | Aggressive |
 |---|---|---|---|
-| Market cap mínimo | $50 K | $20 K | $5 K |
-| Market cap máximo | $500 K | $800 K | $1 M |
-| Edad máxima | 12 h (720 min) | 24 h (1440 min) | 48 h (2880 min) |
-| Global fees mín. | 0.3 SOL | 0.15 SOL | 0.05 SOL |
-| Compra base | 0.05 SOL | 0.03 SOL | 0.01 SOL |
-| Exposición máx. | 0.15 SOL | 0.09 SOL | 0.03 SOL |
+| Min market cap | $50 K | $20 K | $5 K |
+| Max market cap | $500 K | $800 K | $1 M |
+| Max age | 12 h (720 min) | 24 h (1440 min) | 48 h (2880 min) |
+| Min global fees | 0.3 SOL | 0.15 SOL | 0.05 SOL |
+| Base buy | 0.05 SOL | 0.03 SOL | 0.01 SOL |
+| Max exposure | 0.15 SOL | 0.09 SOL | 0.03 SOL |
 
 ---
 
-## Gestión de riesgo
+## Risk management
 
-| Regla | Valor | Comportamiento |
+| Rule | Value | Behavior |
 |---|---|---|
-| Take Profit (TP) | **+20 %** | Venta de la posición completa al alcanzar el precio |
-| Stop Loss (SL) | **−10 %** | Venta de la posición completa al alcanzar el precio |
-| Trailing stop | activa al **+5 %**, distancia **10 %** | Sube el SL conforme el precio hace máximos |
-| Máx. posiciones | **3** | Se ignoran nuevas señales si hay 3 abiertas |
-| Pérdida diaria | **0.5 SOL** | Bloquea nuevas compras (el bot sigue monitoreando) |
-| Price impact | **máx 5 %** | Aborta el swap si el impacto excede el límite |
-| Slippage | **1 % (100 bps)** | Parámetro del quote de Jupiter |
-| Modo por defecto | `DRY_RUN` | No envía transacciones; simula el flujo completo |
+| Take Profit (TP) | **+20 %** | Sells the full position when the price is reached |
+| Stop Loss (SL) | **−10 %** | Sells the full position when the price is reached |
+| Trailing stop | activates at **+5 %**, distance **10 %** | Raises the SL as price makes new highs |
+| Max positions | **3** | New signals are ignored while 3 are open |
+| Daily loss | **0.5 SOL** | Blocks new buys (monitoring keeps running) |
+| Price impact | **max 5 %** | Aborts the swap if impact exceeds the limit |
+| Slippage | **1 % (100 bps)** | Jupiter quote parameter |
+| Default mode | `DRY_RUN` | Sends no transactions; simulates the full flow |
 
-El ciclo de monitoreo corre **al inicio de cada ciclo** (antes de buscar tokens
-nuevos): actualiza el trailing y, al tocar TP/SL, vende (real o simulado) y
-cierra la posición en SQLite. Detalle en [docs/riesgo.md](docs/riesgo.md).
+The monitoring cycle runs **at the start of every cycle** (before searching new
+tokens): it updates the trailing stop and, when TP/SL is hit, sells (real or
+simulated) and closes the position in SQLite. Detail in [docs/riesgo.md](docs/riesgo.md).
 
 ---
 
-## Capturas
+## Screenshots
 
-| Dashboard Streamlit (riesgo/posiciones en vivo) | Reporte CLI (modo manual, dry-run) |
+| Streamlit dashboard (live risk/positions) | CLI report (manual mode, dry-run) |
 |---|---|
-| ![Dashboard](docs/assets/dashboard.png) | ![Reporte CLI](docs/assets/cli-report.png) |
+| ![Dashboard](docs/assets/dashboard.png) | ![CLI report](docs/assets/cli-report.png) |
 
 ---
 
-## Estructura del repositorio
+## Repository structure
 
 ```
 crypto-bot/
 ├── src/
-│   ├── main.py          # orquestador + UI rich + monitoreo de posiciones
-│   ├── fetcher.py       # DexScreener (única fuente de normalización)
-│   ├── chain_data.py    # on-chain vía Helius (seguridad, holders, dev)
-│   ├── analyzer.py      # 11 filtros ponderados + score + decisión
-│   ├── ai.py            # IA local Qwen3 (LM Studio), peso 30 %
-│   ├── executor.py      # swaps reales vía Jupiter (solders) / dry_run
-│   ├── risk.py          # TP, SL, trailing, límites de riesgo
+│   ├── main.py          # orchestrator + rich UI + position monitoring
+│   ├── fetcher.py       # DexScreener (single normalization source)
+│   ├── chain_data.py    # on-chain via Helius (security, holders, dev)
+│   ├── analyzer.py      # 11 weighted filters + score + decision
+│   ├── ai.py            # local AI Qwen3 (LM Studio), 30 % weight
+│   ├── executor.py      # real swaps via Jupiter (solders) / dry_run
+│   ├── risk.py          # TP, SL, trailing, risk limits
 │   ├── storage.py       # SQLite: analyses, positions, seen_tokens
-│   ├── config.py        # modos conservador / equilibrado / agresivo
-│   └── utils.py         # retry con backoff, formateadores
-├── dashboard.py         # dashboard web (Streamlit)
+│   ├── config.py        # conservative / balanced / aggressive modes
+│   └── utils.py         # retry with backoff, formatters
+├── dashboard.py         # web dashboard (Streamlit)
 ├── tests/               # 177 tests (pytest)
-├── docs/                # arquitectura · filtros · riesgo · qa · bug-reports
-├── CONTRIBUTING.md      # cómo contribuir
-├── SECURITY.md          # política de divulgación de vulnerabilidades
+├── docs/                # architecture · filters · risk · qa · bug-reports
+├── CONTRIBUTING.md      # how to contribute
+├── SECURITY.md          # vulnerability disclosure policy
 ├── CODE_OF_CONDUCT.md
-├── ruff.toml            # lint (queda bloqueante en CI)
+├── ruff.toml            # lint (blocking in CI)
 ├── requirements.txt
 └── .github/             # CI · issue/PR templates · dependabot · social preview
 ```
@@ -245,48 +234,47 @@ cd crypto-bot
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env     # configura SOLANA_RPC_URL y HELIUS_API_KEY
+cp .env.example .env     # set SOLANA_RPC_URL and HELIUS_API_KEY
 ```
 
-> El proyecto usa `venv/bin/` para todos los comandos (no Poetry/uv).
+> The project uses `venv/bin/` for every command (no Poetry/uv).
 
 ---
 
-## Configuración
+## Configuration
 
-Toda la configuración viene de variables de entorno (`.env`).
+All configuration comes from environment variables (`.env`).
 
-| Variable | Obligatoria | Descripción |
+| Variable | Required | Description |
 |---|---|---|
-| `SOLANA_RPC_URL` | ✅ | Endpoint RPC de Solana |
-| `HELIUS_API_KEY` | ~ | API key de Helius (análisis on-chain; si falta, los filtros quedan `missing`) |
-| `WALLET_PRIVATE_KEY` | ⚠️ | Clave privada **base58** (64 bytes). **Solo** necesaria con `DRY_RUN=false` |
-| `JUPITER_API_URL` | – | Base de Jupiter API (`https://quote-api.jup.ag/v6`) |
-| `LM_STUDIO_URL` | – | URL del servidor local de LM Studio (`http://localhost:1234`) |
-| `LM_STUDIO_MODEL` | – | Modelo local (`qwen/qwen3-4b-2507`) |
-| `MODE` | – | `conservador` · `equilibrado` · `agresivo` |
-| `DRY_RUN` | – | `true` simulación (por defecto) · `false` operaciones reales |
-| `USE_AI` | – | `true` usa la IA local en el scoring |
-| `LOG_LEVEL` | – | Nivel de log del bot |
+| `SOLANA_RPC_URL` | ✅ | Solana RPC endpoint |
+| `HELIUS_API_KEY` | ~ | Helius API key (on-chain analysis; if missing, filters stay `missing`) |
+| `WALLET_PRIVATE_KEY` | ⚠️ | **base58** private key (64 bytes). **Only** needed with `DRY_RUN=false` |
+| `JUPITER_API_URL` | – | Jupiter API base (`https://quote-api.jup.ag/v6`) |
+| `LM_STUDIO_URL` | – | Local LM Studio server URL (`http://localhost:1234`) |
+| `LM_STUDIO_MODEL` | – | Local model (`qwen/qwen3-4b-2507`) |
+| `MODE` | – | `conservative` · `balanced` · `aggressive` |
+| `DRY_RUN` | – | `true` simulation (default) · `false` real trading |
+| `USE_AI` | – | `true` uses local AI in scoring |
+| `LOG_LEVEL` | – | Bot log level |
 
 ---
 
-## Uso
+## Usage
 
 ```bash
-venv/bin/python -m src.main          # CLI (menú interactivo: manual / automático)
-venv/bin/streamlit run dashboard.py  # dashboard web
+venv/bin/python -m src.main          # CLI (interactive menu: manual / automatic)
+venv/bin/streamlit run dashboard.py  # web dashboard
 ```
 
-- **Modo manual:** analiza un token específico por address o símbolo (ej. `WIF`).
-- **Modo automático:** bucle cada 15 s que detecta, analiza y monitorea.
-- **Dashboard:** métricas, evolución de scores, análisis recientes y la sección
-  **Riesgo/Posiciones** con precios en vivo (TP/SL/trailing, P&L y pérdida
-  diaria).
+- **Manual mode:** analyzes a specific token by address or symbol (e.g. `WIF`).
+- **Automatic mode:** 15 s loop that detects, analyzes and monitors.
+- **Dashboard:** metrics, score evolution, recent analyses and the
+  **Risk/Positions** section with live prices (TP/SL/trailing, P&L and daily loss).
 
 ---
 
-## Testing y calidad
+## Testing & quality
 
 ```bash
 venv/bin/python -m pytest tests/ -q --cov=src --cov-fail-under=60
@@ -294,74 +282,73 @@ venv/bin/ruff check src/ tests/
 venv/bin/black --check src/ tests/
 ```
 
-- **177 tests** cubren reglas, filtros, on-chain, IA local, swaps reales
-  (mockeados), riesgo y storage. Cobertura actual: **83 %** (fetcher 94 %,
-  main 70 %, risk 100 %, analyzer 96 %).
-- **ruff** y **black son bloqueantes en CI** desde v2.1 (antes corrían con
-  `|| true` y el pipeline siempre pasaba). Solo se ignoran `BLE001`/`S110` en
-  las fronteras de API — ver [ruff.toml](ruff.toml) y CLAUDE.md §6.
-- Banner/documentación están en español; el código sigue las convenciones de
+- **177 tests** cover rules, filters, on-chain, local AI, real swaps (mocked),
+  risk and storage. Current coverage: **83 %** (fetcher 94 %, main 70 %,
+  risk 100 %, analyzer 96 %).
+- **ruff and black are blocking in CI** since v2.1 (before they ran with
+  `|| true` and the pipeline always passed). Only `BLE001`/`S110` are ignored at
+  API boundaries — see [ruff.toml](ruff.toml) and CLAUDE.md §6.
+- The banner and docs are in Spanish; the code follows the conventions in
   [CLAUDE.md](CLAUDE.md).
 
 ---
 
-## Documentación
+## Documentation
 
-- [docs/arquitectura.md](docs/arquitectura.md) — estructura, flujo y resiliencia
-- [docs/filtros.md](docs/filtros.md) — los 11 filtros, umbrales y casos de prueba
-- [docs/riesgo.md](docs/riesgo.md) — gestión de riesgo y ciclo de monitoreo
-- [docs/qa-plan.md](docs/qa-plan.md) — plan de QA
-- [docs/bug-reports/](docs/bug-reports/) — bugs y lecciones aprendidas
-- [CHANGELOG.md](CHANGELOG.md) — historial de versiones
-- [CLAUDE.md](CLAUDE.md) — contexto de memoria para agentes de IA
-- [CONTRIBUTING.md](CONTRIBUTING.md) — cómo contribuir
-- [SECURITY.md](SECURITY.md) — política de seguridad
-- [docs/PUBLIC-LAUNCH-CHECKLIST.md](docs/PUBLIC-LAUNCH-CHECKLIST.md) — checklist para el lanzamiento público
+- [docs/arquitectura.md](docs/arquitectura.md) — structure, flow and resilience
+- [docs/filtros.md](docs/filtros.md) — the 11 filters, thresholds and test cases
+- [docs/riesgo.md](docs/riesgo.md) — risk management and the monitoring cycle
+- [docs/qa-plan.md](docs/qa-plan.md) — QA plan
+- [docs/bug-reports/](docs/bug-reports/) — bugs and lessons learned
+- [CHANGELOG.md](CHANGELOG.md) — version history
+- [CLAUDE.md](CLAUDE.md) — memory context for AI agents
+- [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute
+- [SECURITY.md](SECURITY.md) — security policy
+- [docs/PUBLIC-LAUNCH-CHECKLIST.md](docs/PUBLIC-LAUNCH-CHECKLIST.md) — public-launch checklist
 
 ---
 
 ## Roadmap
 
-**Hecho (v2.0 → v2.2):**
+**Done (v2.0 → v2.2):**
 
-- [x] Dashboard web (Streamlit) con sección de riesgo/posiciones en vivo
-- [x] Ejecución real de swaps (Jupiter v6 + solders) y ventas automáticas
-- [x] Scoring honesto: dato no verificado = `0 pts` + `status: missing`
-- [x] Persistencia SQLite (`analyses`, `positions`, `seen_tokens`)
-- [x] CI endurecido (ruff/black/pytest con cobertura bloqueante)
+- [x] Web dashboard (Streamlit) with live risk/positions section
+- [x] Real swap execution (Jupiter v6 + solders) and automatic sells
+- [x] Honest scoring: unverified data = `0 pts` + `status: missing`
+- [x] SQLite persistence (`analyses`, `positions`, `seen_tokens`)
+- [x] Hardened CI (ruff/black/pytest with blocking coverage)
 
-**Pendiente:**
+**Planned:**
 
-- [ ] Confirmación de transacciones enviadas (`getSignatureStatuses` + reintentos)
-- [ ] Venta parcial de posiciones (%)
-- [ ] Monitoreo de saldo SOL de la wallet ("caja")
-- [ ] Backtesting con datos históricos
-- [ ] Detección Pump.fun vía WebSocket
-- [ ] Monitoreo de wallets rentables
-- [ ] Filtros dinámicos
-- [ ] TP/SL dinámicos (ATR)
-- [ ] Soporte multi-wallet
-- [ ] Fine-tuning del modelo de IA
-- [ ] Integración con Telegram
-
----
-
-## Contribuir
-
-¿Ideas, bugs o features? Revisa [CONTRIBUTING.md](CONTRIBUTING.md), abre un
-[issue](https://gitlab.com/braynerssj26/crypto-bot/-/issues) y
-envía un merge request. **PRs welcome** 👋
+- [ ] Confirmation of sent transactions (`getSignatureStatuses` + retries)
+- [ ] Partial position sells (%)
+- [ ] SOL wallet balance monitoring ("cash")
+- [ ] Backtesting with historical data
+- [ ] Pump.fun detection via WebSocket
+- [ ] Profitable-wallet monitoring
+- [ ] Dynamic filters
+- [ ] Dynamic TP/SL (ATR)
+- [ ] Multi-wallet support
+- [ ] AI model fine-tuning
+- [ ] Telegram integration
 
 ---
 
-## Licencia
+## Contributing
 
-**GNU GPL v3** — código libre con **copyleft**: cualquiera puede usar, modificar y
-distribuir el software, pero las obras derivadas deben seguir siendo
-**open-source** bajo la misma licencia (no se puede reutilizar en closed-source ni
-venderlo sin abrir el código). Ver [LICENSE](LICENSE).
+Ideas, bugs or feature requests? Check [CONTRIBUTING.md](CONTRIBUTING.md), open
+an [issue](https://gitlab.com/braynerssj26/crypto-bot/-/issues) and
+send a merge request. **PRs welcome** 👋
 
-**Disclaimer:** este software se distribuye **con fines educativos y de
-investigación**. No ofrece asesoría financiera. El trading de criptomonedas
-conlleva riesgo de pérdida total del capital; el autor no se hace responsable
-del uso indebido.
+---
+
+## License
+
+**GNU GPL v3** — free software with **copyleft**: anyone may use, modify and
+distribute it, but derivative works must remain **open-source** under the same
+license (it cannot be reused in closed source or sold without opening the code).
+See [LICENSE](LICENSE).
+
+**Disclaimer:** this software is distributed **for educational and research
+purposes**. It does not provide financial advice. Cryptocurrency trading carries
+a risk of total loss of capital; the author is not responsible for misuse.
